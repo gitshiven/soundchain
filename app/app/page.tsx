@@ -8,15 +8,6 @@ export default function Home() {
   const { publicKey } = useWallet();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [entered, setEntered] = useState(false);
-  const [landingVisible, setLandingVisible] = useState(false);
-
-  useEffect(() => {
-    const seen = sessionStorage.getItem('sc_entered');
-    if (seen) {
-      setEntered(true);
-      setLandingVisible(true);
-    }
-  }, []);
 
   useEffect(() => {
     if (videoRef.current && entered) {
@@ -25,9 +16,7 @@ export default function Home() {
   }, [entered]);
 
   const handleEnter = () => {
-    sessionStorage.setItem('sc_entered', 'true');
     setEntered(true);
-    setTimeout(() => setLandingVisible(true), 100);
   };
 
   return (
@@ -40,407 +29,153 @@ export default function Home() {
         color: '#f5f5f5',
         fontFamily: '"Courier New", Courier, monospace',
         overflowX: 'hidden',
-        transition: 'opacity 0.8s ease',
-        opacity: landingVisible ? 1 : 0,
+        opacity: entered ? 1 : 0,
+        transition: 'opacity 0.6s ease',
       }}>
 
-        {/* NAVBAR */}
         <nav style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 100,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '16px 32px',
-          borderBottom: '1px solid rgba(245,245,245,0.15)',
-          backdropFilter: 'blur(12px)',
-          background: 'rgba(8,8,8,0.7)',
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '16px 32px', borderBottom: '1px solid rgba(245,245,245,0.15)',
+          backdropFilter: 'blur(12px)', background: 'rgba(8,8,8,0.7)',
         }}>
-          <div style={{
-            fontSize: '13px',
-            letterSpacing: '6px',
-            textTransform: 'uppercase',
-            fontWeight: '700',
-          }}>
+          <div style={{ fontSize: '13px', letterSpacing: '6px', textTransform: 'uppercase', fontWeight: '700' }}>
             SOUNDCHAIN
           </div>
-          <div style={{
-            fontSize: '10px',
-            color: '#666',
-            letterSpacing: '3px',
-            textTransform: 'uppercase',
-          }}>
+          <div style={{ fontSize: '10px', color: '#666', letterSpacing: '3px', textTransform: 'uppercase' }}>
             SOLANA DEVNET
           </div>
           <WalletMultiButton style={{
-            background: 'transparent',
-            color: '#f5f5f5',
+            background: 'transparent', color: '#f5f5f5',
             border: '1px solid rgba(245,245,245,0.3)',
-            fontFamily: '"Courier New", monospace',
-            fontSize: '10px',
-            letterSpacing: '3px',
-            padding: '8px 20px',
-            textTransform: 'uppercase',
+            fontFamily: '"Courier New", monospace', fontSize: '10px',
+            letterSpacing: '3px', padding: '8px 20px', textTransform: 'uppercase',
           }} />
         </nav>
 
-        {/* HERO */}
-        <div style={{
-          position: 'relative',
-          height: '100vh',
-          display: 'flex',
-          alignItems: 'flex-end',
-          overflow: 'hidden',
-        }}>
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            loop
-            playsInline
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              opacity: 0.55,
-            }}
-          >
+        <div style={{ position: 'relative', height: '100vh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
+          <video ref={videoRef} autoPlay muted loop playsInline style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55,
+          }}>
             <source src="/vinyl.mp4" type="video/mp4" />
           </video>
-
           <div style={{
-            position: 'absolute',
-            inset: 0,
+            position: 'absolute', inset: 0,
             background: 'linear-gradient(to bottom, rgba(8,8,8,0.2) 0%, rgba(8,8,8,0) 40%, rgba(8,8,8,0.95) 100%)',
           }} />
-
-          <div style={{
-            position: 'relative',
-            zIndex: 2,
-            padding: '0 32px 64px',
-            width: '100%',
-          }}>
-            <div style={{
-              fontSize: '10px',
-              letterSpacing: '6px',
-              color: '#c8a96e',
-              textTransform: 'uppercase',
-              marginBottom: '16px',
-            }}>
+          <div style={{ position: 'relative', zIndex: 2, padding: '0 32px 64px', width: '100%' }}>
+            <div style={{ fontSize: '10px', letterSpacing: '6px', color: '#c8a96e', textTransform: 'uppercase', marginBottom: '16px' }}>
               ── DECENTRALIZED MUSIC PROTOCOL
             </div>
             <div style={{
-              fontSize: 'clamp(56px, 11vw, 160px)',
-              fontWeight: '900',
-              lineHeight: '0.88',
-              letterSpacing: '-3px',
-              fontFamily: 'Arial Black, Arial, sans-serif',
-              textTransform: 'uppercase',
-              marginBottom: '32px',
+              fontSize: 'clamp(56px, 11vw, 160px)', fontWeight: '900', lineHeight: '0.88',
+              letterSpacing: '-3px', fontFamily: 'Arial Black, Arial, sans-serif',
+              textTransform: 'uppercase', marginBottom: '32px',
             }}>
               MUSIC<br />
-              <span style={{
-                color: 'transparent',
-                WebkitTextStroke: '1.5px #f5f5f5',
-              }}>
-                COLLAB
-              </span><br />
+              <span style={{ color: 'transparent', WebkitTextStroke: '1.5px #f5f5f5' }}>COLLAB</span><br />
               ON-CHAIN
             </div>
-
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '32px',
-              flexWrap: 'wrap',
-            }}>
-              <div style={{
-                fontSize: '12px',
-                color: '#888',
-                letterSpacing: '1px',
-                maxWidth: '380px',
-                lineHeight: 1.7,
-              }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap' }}>
+              <div style={{ fontSize: '12px', color: '#888', letterSpacing: '1px', maxWidth: '380px', lineHeight: 1.7 }}>
                 Composers post challenges. Producers compete.
                 Royalties split automatically on Solana.
                 No middlemen. No disputes. No trust required.
               </div>
-
               {publicKey ? (
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                   <button style={{
-                    background: '#f5f5f5',
-                    color: '#080808',
-                    border: 'none',
-                    padding: '14px 32px',
-                    fontSize: '11px',
-                    letterSpacing: '3px',
-                    fontFamily: '"Courier New", monospace',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    textTransform: 'uppercase',
-                  }}>
-                    POST CHALLENGE →
-                  </button>
+                    background: '#f5f5f5', color: '#080808', border: 'none', padding: '14px 32px',
+                    fontSize: '11px', letterSpacing: '3px', fontFamily: '"Courier New", monospace',
+                    fontWeight: '700', cursor: 'pointer', textTransform: 'uppercase',
+                  }}>POST CHALLENGE →</button>
                   <button style={{
-                    background: 'transparent',
-                    color: '#f5f5f5',
-                    border: '1px solid rgba(245,245,245,0.4)',
-                    padding: '14px 32px',
-                    fontSize: '11px',
-                    letterSpacing: '3px',
-                    fontFamily: '"Courier New", monospace',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    textTransform: 'uppercase',
-                  }}>
-                    BROWSE →
-                  </button>
+                    background: 'transparent', color: '#f5f5f5', border: '1px solid rgba(245,245,245,0.4)',
+                    padding: '14px 32px', fontSize: '11px', letterSpacing: '3px',
+                    fontFamily: '"Courier New", monospace', fontWeight: '700', cursor: 'pointer', textTransform: 'uppercase',
+                  }}>BROWSE →</button>
                 </div>
               ) : (
                 <WalletMultiButton style={{
-                  background: '#f5f5f5',
-                  color: '#080808',
-                  border: 'none',
-                  fontFamily: '"Courier New", monospace',
-                  fontSize: '11px',
-                  letterSpacing: '3px',
-                  padding: '14px 32px',
-                  textTransform: 'uppercase',
-                  fontWeight: '700',
+                  background: '#f5f5f5', color: '#080808', border: 'none',
+                  fontFamily: '"Courier New", monospace', fontSize: '11px',
+                  letterSpacing: '3px', padding: '14px 32px', textTransform: 'uppercase', fontWeight: '700',
                 }} />
               )}
             </div>
           </div>
-
-          <div style={{
-            position: 'absolute',
-            bottom: '32px',
-            right: '32px',
-            zIndex: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '8px',
-          }}>
-            <div style={{
-              fontSize: '9px',
-              letterSpacing: '4px',
-              color: '#555',
-              textTransform: 'uppercase',
-              writingMode: 'vertical-rl',
-            }}>
-              SCROLL
-            </div>
-            <div style={{
-              width: '1px',
-              height: '48px',
-              background: 'linear-gradient(to bottom, #555, transparent)',
-            }} />
+          <div style={{ position: 'absolute', bottom: '32px', right: '32px', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '9px', letterSpacing: '4px', color: '#555', textTransform: 'uppercase', writingMode: 'vertical-rl' }}>SCROLL</div>
+            <div style={{ width: '1px', height: '48px', background: 'linear-gradient(to bottom, #555, transparent)' }} />
           </div>
         </div>
 
-        {/* MARQUEE */}
-        <div style={{
-          borderTop: '1px solid #222',
-          borderBottom: '1px solid #222',
-          padding: '14px 0',
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          background: '#0d0d0d',
-        }}>
-          <span style={{
-            display: 'inline-block',
-            animation: 'marquee 22s linear infinite',
-            fontSize: '10px',
-            letterSpacing: '5px',
-            color: '#555',
-            textTransform: 'uppercase',
-          }}>
+        <div style={{ borderTop: '1px solid #222', borderBottom: '1px solid #222', padding: '14px 0', overflow: 'hidden', whiteSpace: 'nowrap', background: '#0d0d0d' }}>
+          <span style={{ display: 'inline-block', animation: 'marquee 22s linear infinite', fontSize: '10px', letterSpacing: '5px', color: '#555', textTransform: 'uppercase' }}>
             {'TRUSTLESS ESCROW ▪ AUTO ROYALTY SPLITS ▪ ON-CHAIN OWNERSHIP ▪ BUILT ON SOLANA ▪ $20B+ ROYALTY MARKET ▪ 0% MIDDLEMEN ▪ TRUSTLESS ESCROW ▪ AUTO ROYALTY SPLITS ▪ ON-CHAIN OWNERSHIP ▪ BUILT ON SOLANA ▪ $20B+ ROYALTY MARKET ▪ 0% MIDDLEMEN ▪ '}
           </span>
         </div>
 
-        {/* HOW IT WORKS */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          borderBottom: '1px solid #1a1a1a',
-        }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid #1a1a1a' }}>
           {[
-            {
-              num: '01',
-              title: 'POST',
-              sub: 'CHALLENGE',
-              desc: 'Upload your track idea. Set a SOL bounty. Smart contract locks funds in escrow — trustless, instant, permanent.',
-            },
-            {
-              num: '02',
-              title: 'COMPETE',
-              sub: 'PRODUCE',
-              desc: 'Producers submit their versions. Community listens. The best remix rises. No gatekeepers. No labels.',
-            },
-            {
-              num: '03',
-              title: 'OWN',
-              sub: 'FOREVER',
-              desc: 'Winner selected. Royalties split automatically. Ownership minted on-chain. Every future stream pays out forever.',
-            },
+            { num: '01', title: 'POST', sub: 'CHALLENGE', desc: 'Upload your track idea. Set a SOL bounty. Smart contract locks funds in escrow — trustless, instant, permanent.' },
+            { num: '02', title: 'COMPETE', sub: 'PRODUCE', desc: 'Producers submit their versions. Community listens. The best remix rises. No gatekeepers. No labels.' },
+            { num: '03', title: 'OWN', sub: 'FOREVER', desc: 'Winner selected. Royalties split automatically. Ownership minted on-chain. Every future stream pays out forever.' },
           ].map((item, i) => (
-            <div key={i} style={{
-              padding: '48px 32px',
-              borderRight: i < 2 ? '1px solid #1a1a1a' : 'none',
-            }}>
-              <div style={{
-                fontSize: '10px',
-                color: '#c8a96e',
-                letterSpacing: '4px',
-                marginBottom: '24px',
-                fontFamily: '"Courier New", monospace',
-              }}>
+            <div key={i} style={{ padding: '48px 32px', borderRight: i < 2 ? '1px solid #1a1a1a' : 'none' }}>
+              <div style={{ fontSize: '10px', color: '#c8a96e', letterSpacing: '4px', marginBottom: '24px', fontFamily: '"Courier New", monospace' }}>
                 {item.num} ──────
               </div>
-              <div style={{
-                fontSize: 'clamp(40px, 5vw, 72px)',
-                fontWeight: '900',
-                fontFamily: 'Arial Black, sans-serif',
-                lineHeight: 1,
-                marginBottom: '4px',
-              }}>
+              <div style={{ fontSize: 'clamp(40px, 5vw, 72px)', fontWeight: '900', fontFamily: 'Arial Black, sans-serif', lineHeight: 1, marginBottom: '4px' }}>
                 {item.title}
               </div>
-              <div style={{
-                fontSize: '11px',
-                color: '#444',
-                letterSpacing: '4px',
-                marginBottom: '24px',
-              }}>
-                {item.sub}
-              </div>
-              <div style={{
-                fontSize: '12px',
-                color: '#666',
-                lineHeight: 1.8,
-                letterSpacing: '0.5px',
-              }}>
-                {item.desc}
-              </div>
+              <div style={{ fontSize: '11px', color: '#444', letterSpacing: '4px', marginBottom: '24px' }}>{item.sub}</div>
+              <div style={{ fontSize: '12px', color: '#666', lineHeight: 1.8 }}>{item.desc}</div>
             </div>
           ))}
         </div>
 
-        {/* STATS */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          borderBottom: '1px solid #1a1a1a',
-          background: '#0d0d0d',
-        }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid #1a1a1a', background: '#0d0d0d' }}>
           {[
             { value: '$20B+', label: 'ROYALTY MARKET SIZE' },
             { value: '0%', label: 'MIDDLEMEN INVOLVED' },
             { value: '100%', label: 'ON-CHAIN OWNERSHIP' },
           ].map((stat, i) => (
-            <div key={i} style={{
-              padding: '40px 32px',
-              borderRight: i < 2 ? '1px solid #1a1a1a' : 'none',
-              textAlign: 'center',
-            }}>
-              <div style={{
-                fontSize: 'clamp(40px, 6vw, 80px)',
-                fontWeight: '900',
-                fontFamily: 'Arial Black, sans-serif',
-                color: '#c8a96e',
-                lineHeight: 1,
-                marginBottom: '8px',
-              }}>
+            <div key={i} style={{ padding: '40px 32px', borderRight: i < 2 ? '1px solid #1a1a1a' : 'none', textAlign: 'center' }}>
+              <div style={{ fontSize: 'clamp(40px, 6vw, 80px)', fontWeight: '900', fontFamily: 'Arial Black, sans-serif', color: '#c8a96e', lineHeight: 1, marginBottom: '8px' }}>
                 {stat.value}
               </div>
-              <div style={{
-                fontSize: '10px',
-                color: '#555',
-                letterSpacing: '4px',
-              }}>
-                {stat.label}
-              </div>
+              <div style={{ fontSize: '10px', color: '#555', letterSpacing: '4px' }}>{stat.label}</div>
             </div>
           ))}
         </div>
 
-        {/* BOTTOM CTA */}
-        <div style={{
-          padding: '80px 32px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          gap: '32px',
-        }}>
-          <div style={{
-            fontSize: '10px',
-            color: '#c8a96e',
-            letterSpacing: '6px',
-            textTransform: 'uppercase',
-          }}>
+        <div style={{ padding: '80px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '32px' }}>
+          <div style={{ fontSize: '10px', color: '#c8a96e', letterSpacing: '6px', textTransform: 'uppercase' }}>
             ── BUILT FOR THE FRONTIER HACKATHON ──
           </div>
-          <div style={{
-            fontSize: 'clamp(32px, 6vw, 80px)',
-            fontWeight: '900',
-            fontFamily: 'Arial Black, sans-serif',
-            lineHeight: 0.95,
-            textTransform: 'uppercase',
-            letterSpacing: '-2px',
-          }}>
+          <div style={{ fontSize: 'clamp(32px, 6vw, 80px)', fontWeight: '900', fontFamily: 'Arial Black, sans-serif', lineHeight: 0.95, textTransform: 'uppercase', letterSpacing: '-2px' }}>
             THE MUSIC INDUSTRY<br />
-            <span style={{ color: 'transparent', WebkitTextStroke: '1px #f5f5f5' }}>
-              IS BROKEN.
-            </span><br />
+            <span style={{ color: 'transparent', WebkitTextStroke: '1px #f5f5f5' }}>IS BROKEN.</span><br />
             WE FIXED IT.
           </div>
           {!publicKey && (
             <WalletMultiButton style={{
-              background: '#f5f5f5',
-              color: '#080808',
-              border: 'none',
-              fontFamily: '"Courier New", monospace',
-              fontSize: '11px',
-              letterSpacing: '4px',
-              padding: '16px 48px',
-              textTransform: 'uppercase',
-              fontWeight: '700',
+              background: '#f5f5f5', color: '#080808', border: 'none',
+              fontFamily: '"Courier New", monospace', fontSize: '11px',
+              letterSpacing: '4px', padding: '16px 48px', textTransform: 'uppercase', fontWeight: '700',
             }} />
           )}
         </div>
 
-        {/* FOOTER */}
-        <div style={{
-          borderTop: '1px solid #1a1a1a',
-          padding: '20px 32px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontSize: '10px',
-          color: '#333',
-          letterSpacing: '2px',
-          flexWrap: 'wrap',
-          gap: '8px',
-        }}>
+        <div style={{ borderTop: '1px solid #1a1a1a', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#333', letterSpacing: '2px', flexWrap: 'wrap', gap: '8px' }}>
           <span>SOUNDCHAIN © 2026</span>
           <span style={{ color: '#c8a96e' }}>PROGRAM: Bnuq1snx...ssmu</span>
           <span>COLOSSEUM FRONTIER HACKATHON</span>
         </div>
 
         <style>{`
-          @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-          }
+          @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
           * { box-sizing: border-box; margin: 0; padding: 0; }
           ::-webkit-scrollbar { width: 4px; }
           ::-webkit-scrollbar-track { background: #080808; }
