@@ -3,6 +3,7 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useEffect, useRef, useState } from 'react';
 import { IntroGate } from './intro';
+import Image from 'next/image';
 
 export default function Home() {
   const { publicKey } = useWallet();
@@ -15,14 +16,11 @@ export default function Home() {
     }
   }, [entered]);
 
-  const handleEnter = () => {
-    setEntered(true);
-  };
+  const handleEnter = () => setEntered(true);
 
   return (
     <>
       {!entered && <IntroGate onEnter={handleEnter} />}
-
       <main style={{
         background: '#080808',
         minHeight: '100vh',
@@ -34,22 +32,34 @@ export default function Home() {
       }}>
 
         <nav style={{
-          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          padding: '16px 32px', borderBottom: '1px solid rgba(245,245,245,0.15)',
-          backdropFilter: 'blur(12px)', background: 'rgba(8,8,8,0.7)',
+          position: 'fixed',
+          top: 0, left: 0, right: 0,
+          zIndex: 100,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '14px 32px',
+          borderBottom: '1px solid rgba(245,245,245,0.15)',
+          backdropFilter: 'blur(12px)',
+          background: 'rgba(8,8,8,0.7)',
         }}>
-          <div style={{ fontSize: '13px', letterSpacing: '6px', textTransform: 'uppercase', fontWeight: '700' }}>
-            SOUNDCHAIN
-          </div>
+          <img
+            src="/soundchain-wordmark.svg"
+            alt="SoundChain"
+            style={{ height: '32px', width: 'auto' }}
+          />
           <div style={{ fontSize: '10px', color: '#666', letterSpacing: '3px', textTransform: 'uppercase' }}>
             SOLANA DEVNET
           </div>
           <WalletMultiButton style={{
-            background: 'transparent', color: '#f5f5f5',
+            background: 'transparent',
+            color: '#f5f5f5',
             border: '1px solid rgba(245,245,245,0.3)',
-            fontFamily: '"Courier New", monospace', fontSize: '10px',
-            letterSpacing: '3px', padding: '8px 20px', textTransform: 'uppercase',
+            fontFamily: '"Courier New", monospace',
+            fontSize: '10px',
+            letterSpacing: '3px',
+            padding: '8px 20px',
+            textTransform: 'uppercase',
           }} />
         </nav>
 
@@ -169,8 +179,7 @@ export default function Home() {
         </div>
 
         <div style={{ borderTop: '1px solid #1a1a1a', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#333', letterSpacing: '2px', flexWrap: 'wrap', gap: '8px' }}>
-          <span>SOUNDCHAIN © 2026</span>
-          <span style={{ color: '#c8a96e' }}>PROGRAM: Bnuq1snx...ssmu</span>
+        <img src="/soundchain-icon.svg" alt="SoundChain" style={{ height: '28px', width: 'auto', opacity: 1 }} />          <span style={{ color: '#c8a96e' }}>PROGRAM: Bnuq1snx...ssmu</span>
           <span>COLOSSEUM FRONTIER HACKATHON</span>
         </div>
 
