@@ -3,12 +3,17 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useEffect, useRef, useState } from 'react';
 import { IntroGate } from './intro';
-import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Home() {
   const { publicKey } = useWallet();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [entered, setEntered] = useState(false);
+  const [entered, setEntered] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('soundchain_entered') === 'true';
+    }
+    return false;
+  });
 
   useEffect(() => {
     if (videoRef.current && entered) {
@@ -16,50 +21,32 @@ export default function Home() {
     }
   }, [entered]);
 
-  const handleEnter = () => setEntered(true);
+  const handleEnter = () => {
+    sessionStorage.setItem('soundchain_entered', 'true');
+    setEntered(true);
+  };
 
   return (
     <>
       {!entered && <IntroGate onEnter={handleEnter} />}
       <main style={{
-        background: '#080808',
-        minHeight: '100vh',
-        color: '#f5f5f5',
-        fontFamily: '"Courier New", Courier, monospace',
-        overflowX: 'hidden',
-        opacity: entered ? 1 : 0,
-        transition: 'opacity 0.6s ease',
+        background: '#080808', minHeight: '100vh', color: '#f5f5f5',
+        fontFamily: '"Courier New", Courier, monospace', overflowX: 'hidden',
+        opacity: entered ? 1 : 0, transition: 'opacity 0.6s ease',
       }}>
-
         <nav style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0,
-          zIndex: 100,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '14px 32px',
-          borderBottom: '1px solid rgba(245,245,245,0.15)',
-          backdropFilter: 'blur(12px)',
-          background: 'rgba(8,8,8,0.7)',
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '14px 32px', borderBottom: '1px solid rgba(245,245,245,0.15)',
+          backdropFilter: 'blur(12px)', background: 'rgba(8,8,8,0.7)',
         }}>
-          <img
-            src="/soundchain-wordmark.svg"
-            alt="SoundChain"
-            style={{ height: '32px', width: 'auto' }}
-          />
-          <div style={{ fontSize: '10px', color: '#666', letterSpacing: '3px', textTransform: 'uppercase' }}>
-            SOLANA DEVNET
-          </div>
+          <img src="/soundchain-wordmark.svg" alt="SoundChain" style={{ height: '32px', width: 'auto' }} />
+          <div style={{ fontSize: '10px', color: '#666', letterSpacing: '3px', textTransform: 'uppercase' }}>SOLANA DEVNET</div>
           <WalletMultiButton style={{
-            background: 'transparent',
-            color: '#f5f5f5',
+            background: 'transparent', color: '#f5f5f5',
             border: '1px solid rgba(245,245,245,0.3)',
-            fontFamily: '"Courier New", monospace',
-            fontSize: '10px',
-            letterSpacing: '3px',
-            padding: '8px 20px',
-            textTransform: 'uppercase',
+            fontFamily: '"Courier New", monospace', fontSize: '10px',
+            letterSpacing: '3px', padding: '8px 20px', textTransform: 'uppercase',
           }} />
         </nav>
 
@@ -94,16 +81,19 @@ export default function Home() {
               </div>
               {publicKey ? (
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  <button style={{
+                  <Link href="/post-challenge" style={{
                     background: '#f5f5f5', color: '#080808', border: 'none', padding: '14px 32px',
                     fontSize: '11px', letterSpacing: '3px', fontFamily: '"Courier New", monospace',
                     fontWeight: '700', cursor: 'pointer', textTransform: 'uppercase',
-                  }}>POST CHALLENGE →</button>
-                  <button style={{
-                    background: 'transparent', color: '#f5f5f5', border: '1px solid rgba(245,245,245,0.4)',
-                    padding: '14px 32px', fontSize: '11px', letterSpacing: '3px',
-                    fontFamily: '"Courier New", monospace', fontWeight: '700', cursor: 'pointer', textTransform: 'uppercase',
-                  }}>BROWSE →</button>
+                    textDecoration: 'none', display: 'inline-block'
+                  }}>POST CHALLENGE →</Link>
+                  <Link href="/browse" style={{
+                    background: 'transparent', color: '#f5f5f5',
+                    border: '1px solid rgba(245,245,245,0.4)', padding: '14px 32px',
+                    fontSize: '11px', letterSpacing: '3px', fontFamily: '"Courier New", monospace',
+                    fontWeight: '700', cursor: 'pointer', textTransform: 'uppercase',
+                    textDecoration: 'none', display: 'inline-block'
+                  }}>BROWSE →</Link>
                 </div>
               ) : (
                 <WalletMultiButton style={{
@@ -179,7 +169,8 @@ export default function Home() {
         </div>
 
         <div style={{ borderTop: '1px solid #1a1a1a', padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#333', letterSpacing: '2px', flexWrap: 'wrap', gap: '8px' }}>
-        <img src="/soundchain-icon.svg" alt="SoundChain" style={{ height: '28px', width: 'auto', opacity: 1 }} />          <span style={{ color: '#c8a96e' }}>PROGRAM: Bnuq1snx...ssmu</span>
+          <img src="/soundchain-icon.svg" alt="SoundChain" style={{ height: '28px', width: 'auto', opacity: 1 }} />
+          <span style={{ color: '#c8a96e' }}>PROGRAM: Bnuq1snx...ssmu</span>
           <span>COLOSSEUM FRONTIER HACKATHON</span>
         </div>
 

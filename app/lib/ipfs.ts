@@ -1,15 +1,20 @@
-import { NFTStorage, Blob } from 'nft.storage'
-
-const client = new NFTStorage({ 
-  token: process.env.NEXT_PUBLIC_NFT_STORAGE_KEY! 
-})
-
 export async function uploadAudio(file: File): Promise<string> {
-  const blob = new Blob([await file.arrayBuffer()], { type: file.type })
-  const cid = await client.storeBlob(blob)
-  return cid
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+    },
+    body: formData,
+  });
+
+  if (!res.ok) throw new Error('IPFS upload failed');
+  const data = await res.json();
+  return data.IpfsHash;
 }
 
 export function getIPFSUrl(cid: string): string {
-  return `https://nftstorage.link/ipfs/${cid}`
+  return `https://gateway.pinata.cloud/ipfs/${cid}`;
 }
