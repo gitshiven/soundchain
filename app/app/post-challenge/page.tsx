@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { uploadAudio } from '../../lib/ipfs';
 import { supabase } from '../../lib/supabase';
+import { TextReveal } from '../components/TextReveal';
 
 export default function PostChallenge() {
   const router = useRouter();
@@ -348,11 +349,19 @@ export default function PostChallenge() {
           </Link>
           <div style={{ width: '1px', height: '16px', background: '#222' }} />
           <button
-            onClick={() => router.back()}
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/browse');
+              }
+            }}
             style={{ fontSize: '11px', letterSpacing: '3px', color: '#555', fontFamily: '"Courier New", monospace', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             onMouseEnter={e => (e.currentTarget.style.color = '#f5f5f5')}
             onMouseLeave={e => (e.currentTarget.style.color = '#555')}
-            >← BACK</button>
+          >
+            ← BACK
+          </button>
         </div>
         <div style={{ fontSize: '11px', letterSpacing: '4px', color: '#444', fontFamily: '"Courier New", monospace' }}>
           POST A CHALLENGE
@@ -372,24 +381,38 @@ export default function PostChallenge() {
           padding: '80px 40px 52px', zIndex: 10,
           background: 'linear-gradient(to top, rgba(8,8,8,0.98) 0%, transparent 100%)',
         }}>
-          <div style={{ fontSize: '11px', letterSpacing: '6px', color: '#c8a96e', fontFamily: '"Courier New", monospace', marginBottom: '16px' }}>
-            ── POST A CHALLENGE
-          </div>
-          <div style={{
-            fontFamily: 'Bebas Neue, sans-serif',
-            fontSize: 'clamp(56px, 9vw, 112px)',
-            lineHeight: 0.88, letterSpacing: '3px', marginBottom: '24px',
-          }}>
-            THROW THE<br />
-            <span style={{ color: '#c8a96e' }}>BOUNTY</span><br />
-            <span style={{ color: 'transparent', WebkitTextStroke: '2px #f5f5f5' }}>START THE</span><br />
-            BATTLE
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#444', fontFamily: '"Courier New", monospace' }}>
-            <div style={{ width: '32px', height: '1px', background: '#333' }} />
-            SCROLL TO POST YOUR CHALLENGE
-            <div style={{ width: '32px', height: '1px', background: '#333' }} />
-          </div>
+          <TextReveal delay={100}>
+            <div style={{ fontSize: '13px', letterSpacing: '6px', color: '#c8a96e', fontFamily: '"Courier New", monospace', marginBottom: '16px' }}>
+              ── POST A CHALLENGE
+            </div>
+          </TextReveal>
+          <TextReveal delay={250}>
+            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 'clamp(56px, 9vw, 112px)', lineHeight: 0.88, letterSpacing: '3px' }}>
+              THROW THE
+            </div>
+          </TextReveal>
+          <TextReveal delay={400}>
+            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 'clamp(56px, 9vw, 112px)', lineHeight: 0.88, letterSpacing: '3px', color: '#c8a96e' }}>
+              BOUNTY
+            </div>
+          </TextReveal>
+          <TextReveal delay={550}>
+            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 'clamp(56px, 9vw, 112px)', lineHeight: 0.88, letterSpacing: '3px', color: 'transparent', WebkitTextStroke: '2px #f5f5f5' }}>
+              START THE
+            </div>
+          </TextReveal>
+          <TextReveal delay={700} style={{ marginBottom: '24px' }}>
+            <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: 'clamp(56px, 9vw, 112px)', lineHeight: 0.88, letterSpacing: '3px' }}>
+              BATTLE
+            </div>
+          </TextReveal>
+          <TextReveal delay={850}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#444', fontFamily: '"Courier New", monospace' }}>
+              <div style={{ width: '32px', height: '1px', background: '#333' }} />
+              SCROLL TO POST YOUR CHALLENGE
+              <div style={{ width: '32px', height: '1px', background: '#333' }} />
+            </div>
+          </TextReveal>
         </div>
       </div>
 
