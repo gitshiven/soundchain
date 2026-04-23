@@ -9,19 +9,35 @@ import Link from 'next/link';
 export default function Home() {
   const { publicKey } = useWallet();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [entered, setEntered] = useState(false);
+  const [entered, setEntered] = useState(true);
+  const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
-    if (videoRef.current && entered) {
+    const alreadyEntered = sessionStorage.getItem('soundchain_entered');
+    if (alreadyEntered) {
+      setEntered(true);
+      setShowIntro(false);
+    } else {
+      setEntered(false);
+      setShowIntro(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (entered && videoRef.current) {
       videoRef.current.play().catch(() => {});
     }
   }, [entered]);
 
-  const handleEnter = () => setEntered(true);
+  const handleEnter = () => {
+    sessionStorage.setItem('soundchain_entered', 'true');
+    setShowIntro(false);
+    setEntered(true);
+  };
 
   return (
     <>
-      {!entered && <IntroGate onEnter={handleEnter} />}
+      {showIntro && <IntroGate onEnter={handleEnter} />}
       <main style={{
         background: '#080808', minHeight: '100vh', color: '#f5f5f5',
         fontFamily: '"Courier New", Courier, monospace', overflowX: 'hidden',
@@ -54,31 +70,26 @@ export default function Home() {
             background: 'linear-gradient(to bottom, rgba(8,8,8,0.2) 0%, rgba(8,8,8,0) 40%, rgba(8,8,8,0.95) 100%)',
           }} />
           <div style={{ position: 'relative', zIndex: 2, padding: '0 32px 64px', width: '100%' }}>
-
             <TextReveal delay={200}>
               <div style={{ fontSize: '13px', letterSpacing: '6px', color: '#c8a96e', textTransform: 'uppercase', marginBottom: '16px' }}>
                 ── DECENTRALIZED MUSIC PROTOCOL
               </div>
             </TextReveal>
-
             <TextReveal delay={350}>
               <div style={{ fontSize: 'clamp(56px, 11vw, 160px)', fontWeight: '900', lineHeight: '0.88', letterSpacing: '-3px', fontFamily: 'Arial Black, Arial, sans-serif', textTransform: 'uppercase' }}>
                 MUSIC
               </div>
             </TextReveal>
-
             <TextReveal delay={500}>
               <div style={{ fontSize: 'clamp(56px, 11vw, 160px)', fontWeight: '900', lineHeight: '0.88', letterSpacing: '-3px', fontFamily: 'Arial Black, Arial, sans-serif', textTransform: 'uppercase', color: 'transparent', WebkitTextStroke: '1.5px #f5f5f5' }}>
                 COLLAB
               </div>
             </TextReveal>
-
             <TextReveal delay={650}>
               <div style={{ fontSize: 'clamp(56px, 11vw, 160px)', fontWeight: '900', lineHeight: '0.88', letterSpacing: '-3px', fontFamily: 'Arial Black, Arial, sans-serif', textTransform: 'uppercase', marginBottom: '32px' }}>
                 ON-CHAIN
               </div>
             </TextReveal>
-
             <TextReveal delay={800}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap' }}>
                 <div style={{ fontSize: '15px', color: '#888', letterSpacing: '1px', maxWidth: '380px', lineHeight: 1.8 }}>
@@ -111,7 +122,6 @@ export default function Home() {
                 )}
               </div>
             </TextReveal>
-
           </div>
           <div style={{ position: 'absolute', bottom: '32px', right: '32px', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
             <div style={{ fontSize: '11px', letterSpacing: '4px', color: '#555', textTransform: 'uppercase', writingMode: 'vertical-rl' }}>SCROLL</div>

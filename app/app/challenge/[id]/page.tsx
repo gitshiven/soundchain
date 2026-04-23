@@ -144,7 +144,7 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <Link href="/"><img src="/soundchain-wordmark.svg" alt="SoundChain" style={{ height: '28px' }} /></Link>
           <div style={{ width: '1px', height: '16px', background: '#222' }} />
-          <button onClick={() => router.back()} style={{ fontSize: '11px', letterSpacing: '3px', color: '#555', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: '"Courier New", monospace' }}
+          <button onClick={() => window.history.length > 1 ? router.back() : router.push('/browse')} style={{ fontSize: '11px', letterSpacing: '3px', color: '#555', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: '"Courier New", monospace' }}
             onMouseEnter={e => (e.currentTarget.style.color='#f5f5f5')}
             onMouseLeave={e => (e.currentTarget.style.color='#555')}
           >← BACK</button>

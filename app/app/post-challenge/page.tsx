@@ -351,7 +351,7 @@ export default function PostChallenge() {
           <button
             onClick={() => {
               if (window.history.length > 1) {
-                router.back();
+                window.history.length > 1 ? router.back() : router.push('/');
               } else {
                 router.push('/browse');
               }
