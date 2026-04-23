@@ -5,7 +5,8 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
-import { uploadAudio, getIPFSUrl } from '../../../lib/ipfs';
+import { uploadAudio } from '../../../lib/ipfs';
+import { LogoTransition } from '../../components/LogoTransition';
 
 interface Challenge {
   id: string;
@@ -28,26 +29,22 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
   const [loading, setLoading] = useState(true);
   const [file, setFile] = useState<File | null>(null);
   const [note, setNote] = useState('');
-  const [status, setStatus] = useState<'idle'|'uploading'|'saving'|'done'|'error'>('idle');
+  const [status, setStatus] = useState<'idle'|'launching'|'uploading'|'saving'|'done'|'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     async function load() {
       const resolvedParams = await params;
-      const { data, error } = await supabase
-        .from('challenges')
-        .select('*')
-        .eq('id', resolvedParams.id)
-        .single();
+      const { data, error } = await supabase.from('challenges').select('*').eq('id', resolvedParams.id).single();
       if (!error && data) setChallenge(data);
       setLoading(false);
     }
     load();
-  }, [params.id]);
+  }, []);
 
   const handleFile = (f: File) => {
-    if (f.size > 50 * 1024 * 1024) { setErrorMsg('FILE TOO LARGE — MAX 50MB'); setStatus('error'); return; }
+    if (f.size > 50*1024*1024) { setErrorMsg('FILE TOO LARGE — MAX 50MB'); setStatus('error'); return; }
     setFile(f); setStatus('idle'); setErrorMsg('');
   };
 
@@ -64,11 +61,14 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
     if (!publicKey) { setErrorMsg('WALLET NOT CONNECTED'); setStatus('error'); return; }
     if (!file) { setErrorMsg('NO REMIX FILE SELECTED'); setStatus('error'); return; }
     if (!challenge) return;
+    setStatus('launching');
+  };
 
+  const handleLaunchComplete = async () => {
+    if (!publicKey || !file || !challenge) return;
     try {
       setStatus('uploading');
       const cid = await uploadAudio(file);
-
       setStatus('saving');
       const { error } = await supabase.from('submissions').insert({
         challenge_id: challenge.id,
@@ -85,7 +85,7 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
     }
   };
 
-  const daysLeft = (created: string) => Math.max(0, 7 - Math.floor((Date.now() - new Date(created).getTime()) / 86400000));
+  const daysLeft = (created: string) => Math.max(0, 7-Math.floor((Date.now()-new Date(created).getTime())/86400000));
 
   const inputStyle = {
     width: '100%', background: 'transparent', border: 'none',
@@ -111,6 +111,8 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
       <Link href="/browse" style={{ color: '#555', fontSize: '11px', letterSpacing: '3px', textDecoration: 'none' }}>← BACK TO VAULT</Link>
     </div>
   );
+
+  if (status === 'launching') return <LogoTransition onComplete={handleLaunchComplete} />;
 
   if (status === 'done') return (
     <div style={{ background: '#080808', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Courier New", monospace', color: '#f5f5f5', padding: '32px' }}>
@@ -142,44 +144,43 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <Link href="/"><img src="/soundchain-wordmark.svg" alt="SoundChain" style={{ height: '28px' }} /></Link>
           <div style={{ width: '1px', height: '16px', background: '#222' }} />
-          <button onClick={() => router.back()} style={{ fontSize: '11px', letterSpacing: '3px', color: '#555', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: '"Courier New", monospace' }} onMouseEnter={e => (e.currentTarget.style.color = '#f5f5f5')} onMouseLeave={e => (e.currentTarget.style.color = '#555')}>← BACK</button>
+          <button onClick={() => router.back()} style={{ fontSize: '11px', letterSpacing: '3px', color: '#555', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: '"Courier New", monospace' }}
+            onMouseEnter={e => (e.currentTarget.style.color='#f5f5f5')}
+            onMouseLeave={e => (e.currentTarget.style.color='#555')}
+          >← BACK</button>
         </div>
         <div style={{ fontSize: '11px', letterSpacing: '4px', color: '#444', fontFamily: '"Courier New", monospace' }}>SUBMIT VERSION</div>
         <WalletMultiButton style={{ background: 'transparent', color: '#f5f5f5', border: '1px solid rgba(245,245,245,0.15)', fontFamily: '"Courier New", monospace', fontSize: '10px', letterSpacing: '2px', padding: '8px 18px', textTransform: 'uppercase' }} />
       </nav>
 
-      <div style={{ paddingTop: '100px', maxWidth: '960px', margin: '0 auto', padding: '100px 40px 120px' }}>
-
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '100px 40px 120px' }}>
         <div style={{ marginBottom: '64px', borderBottom: '1px solid #111', paddingBottom: '40px' }}>
           <div style={{ fontSize: '11px', letterSpacing: '5px', color: '#c8a96e', fontFamily: '"Courier New", monospace', marginBottom: '10px' }}>── THE CHALLENGE</div>
           <div style={{ fontFamily: 'Arial Black, sans-serif', fontSize: 'clamp(36px, 6vw, 72px)', fontWeight: '900', lineHeight: 0.9, letterSpacing: '-2px', marginBottom: '20px' }}>
             {challenge.title.toUpperCase()}
           </div>
           <div style={{ fontSize: '13px', color: '#555', letterSpacing: '1px', fontFamily: '"Courier New", monospace', marginBottom: '20px' }}>
-            {challenge.composer_wallet.slice(0, 8)}...{challenge.composer_wallet.slice(-6)} · OPEN · {daysLeft(challenge.created_at)} DAYS LEFT
+            {challenge.composer_wallet.slice(0,8)}...{challenge.composer_wallet.slice(-6)} · OPEN · {daysLeft(challenge.created_at)} DAYS LEFT
           </div>
           <div style={{ fontSize: '15px', color: '#666', lineHeight: 1.8, maxWidth: '600px', marginBottom: '28px' }}>
             {challenge.description}
           </div>
-
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
             <div>
               <div style={{ fontSize: '11px', color: '#444', letterSpacing: '3px', fontFamily: '"Courier New", monospace', marginBottom: '4px' }}>PRIZE POOL</div>
               <div style={{ fontFamily: 'Arial Black, sans-serif', fontSize: '48px', color: '#c8a96e', letterSpacing: '-1px', lineHeight: 1 }}>{challenge.bounty} SOL</div>
             </div>
             {challenge.audio_cid && (
-              <button onClick={handlePlayOriginal} style={{ background: 'transparent', border: '1px solid #333', color: '#888', padding: '14px 24px', fontSize: '13px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', cursor: 'pointer', transition: 'all 0.2s', marginTop: '16px' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#c8a96e'; (e.currentTarget as HTMLButtonElement).style.color = '#c8a96e'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#333'; (e.currentTarget as HTMLButtonElement).style.color = '#888'; }}
-              >
-                {playing ? '⏸ PAUSE ORIGINAL' : '▶ PLAY ORIGINAL TRACK'}
-              </button>
+              <button onClick={handlePlayOriginal}
+                style={{ background: 'transparent', border: '1px solid #333', color: '#888', padding: '14px 24px', fontSize: '13px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', cursor: 'pointer', transition: 'all 0.2s', marginTop: '16px' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor='#c8a96e'; (e.currentTarget as HTMLButtonElement).style.color='#c8a96e'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor='#333'; (e.currentTarget as HTMLButtonElement).style.color='#888'; }}
+              >{playing ? '⏸ PAUSE ORIGINAL' : '▶ PLAY ORIGINAL TRACK'}</button>
             )}
           </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px' }}>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: '36px' }}>
             <div>
               <div style={{ fontSize: '11px', letterSpacing: '5px', color: '#c8a96e', fontFamily: '"Courier New", monospace', marginBottom: '10px' }}>01 ── YOUR REMIX</div>
@@ -189,16 +190,16 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
             <div>
               <label style={labelStyle}>UPLOAD YOUR REMIX</label>
               <div
-                onDragOver={e => { e.preventDefault(); (e.currentTarget as HTMLDivElement).style.borderColor = '#c8a96e'; }}
-                onDragLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = file ? '#c8a96e' : '#1e1e1e'; }}
-                onDrop={e => { e.preventDefault(); (e.currentTarget as HTMLDivElement).style.borderColor = '#1e1e1e'; const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+                onDragOver={e => { e.preventDefault(); (e.currentTarget as HTMLDivElement).style.borderColor='#c8a96e'; }}
+                onDragLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor=file?'#c8a96e':'#1e1e1e'; }}
+                onDrop={e => { e.preventDefault(); (e.currentTarget as HTMLDivElement).style.borderColor='#1e1e1e'; const f=e.dataTransfer.files[0]; if(f) handleFile(f); }}
                 onClick={() => fileRef.current?.click()}
-                style={{ border: `1px dashed ${file ? '#c8a96e' : '#1e1e1e'}`, padding: '36px 24px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s', background: file ? 'rgba(200,169,110,0.03)' : 'transparent' }}
+                style={{ border: `1px dashed ${file?'#c8a96e':'#1e1e1e'}`, padding: '36px 24px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s', background: file?'rgba(200,169,110,0.03)':'transparent' }}
               >
                 {file ? (
                   <>
                     <div style={{ fontSize: '14px', color: '#c8a96e', marginBottom: '4px', fontWeight: '500' }}>✓ {file.name}</div>
-                    <div style={{ fontSize: '12px', color: '#555' }}>{(file.size / 1024 / 1024).toFixed(2)} MB · click to change</div>
+                    <div style={{ fontSize: '12px', color: '#555' }}>{(file.size/1024/1024).toFixed(2)} MB · click to change</div>
                   </>
                 ) : (
                   <>
@@ -208,18 +209,17 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
                   </>
                 )}
               </div>
-              <input ref={fileRef} type="file" accept=".mp3,.wav,.flac" style={{ display: 'none' }} onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
+              <input ref={fileRef} type="file" accept=".mp3,.wav,.flac" style={{ display: 'none' }} onChange={e => { if(e.target.files?.[0]) handleFile(e.target.files[0]); }} />
             </div>
 
             <div>
               <label style={labelStyle}>NOTE TO COMPOSER (OPTIONAL)</label>
-              <textarea
-                value={note} onChange={e => setNote(e.target.value)}
+              <textarea value={note} onChange={e => setNote(e.target.value)}
                 placeholder="Tell the composer about your approach, influences, tools used..."
                 maxLength={300} rows={4}
                 style={{ ...inputStyle, resize: 'none', lineHeight: 1.8, fontSize: '15px' }}
-                onFocus={e => (e.target.style.borderBottomColor = '#c8a96e')}
-                onBlur={e => (e.target.style.borderBottomColor = '#1e1e1e')}
+                onFocus={e => (e.target.style.borderBottomColor='#c8a96e')}
+                onBlur={e => (e.target.style.borderBottomColor='#1e1e1e')}
               />
             </div>
           </div>
@@ -234,9 +234,8 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
               <div style={{ fontSize: '13px', color: '#444', letterSpacing: '2px', fontFamily: '"Courier New", monospace', marginBottom: '16px' }}>SUBMITTING TO</div>
               <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '8px' }}>{challenge.title}</div>
               <div style={{ fontSize: '12px', color: '#444', letterSpacing: '1px', fontFamily: '"Courier New", monospace', marginBottom: '20px' }}>
-                BY {challenge.composer_wallet.slice(0, 8)}...{challenge.composer_wallet.slice(-6)}
+                BY {challenge.composer_wallet.slice(0,8)}...{challenge.composer_wallet.slice(-6)}
               </div>
-
               <div style={{ height: '3px', display: 'flex', gap: '1px', marginBottom: '12px' }}>
                 <div style={{ flex: 70, background: '#c8a96e' }} />
                 <div style={{ flex: 20, background: '#333' }} />
@@ -247,18 +246,17 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
                 <span style={{ color: '#555' }}>20% PLATFORM</span>
                 <span style={{ color: '#333' }}>10% COMPOSER</span>
               </div>
-
               <div style={{ fontFamily: 'Arial Black, sans-serif', fontSize: '48px', color: '#c8a96e', letterSpacing: '-1px', lineHeight: 1 }}>{challenge.bounty} SOL</div>
               <div style={{ fontSize: '11px', color: '#444', letterSpacing: '2px', fontFamily: '"Courier New", monospace', marginTop: '4px' }}>IF YOU WIN</div>
             </div>
 
             <div>
               {[
-                ['STORAGE', 'IPFS / PERMANENT'],
-                ['NETWORK', 'SOLANA DEVNET'],
-                ['PAYOUT', 'AUTO ON WINNER SELECT'],
-                ['YOUR WALLET', publicKey ? publicKey.toString().slice(0, 8) + '...' + publicKey.toString().slice(-6) : 'NOT CONNECTED'],
-              ].map(([k, v]) => (
+                ['STORAGE','IPFS / PERMANENT'],
+                ['NETWORK','SOLANA DEVNET'],
+                ['PAYOUT','AUTO ON WINNER SELECT'],
+                ['YOUR WALLET', publicKey ? publicKey.toString().slice(0,8)+'...'+publicKey.toString().slice(-6) : 'NOT CONNECTED'],
+              ].map(([k,v]) => (
                 <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #0d0d0d', fontSize: '12px', fontFamily: '"Courier New", monospace' }}>
                   <span style={{ color: '#333' }}>{k}</span>
                   <span style={{ color: '#555' }}>{v}</span>
@@ -272,27 +270,18 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
               </div>
             )}
 
-            {status !== 'idle' && status !== 'error' && status !== 'done' && (
-              <div style={{ border: '1px solid rgba(200,169,110,0.2)', padding: '14px 16px', fontSize: '13px', color: '#c8a96e', fontFamily: '"Courier New", monospace', letterSpacing: '1px' }}>
-                {status === 'uploading' && '▲ Uploading remix to IPFS...'}
-                {status === 'saving' && '💾 Saving submission...'}
-              </div>
-            )}
-
             <div style={{ marginTop: 'auto' }}>
               {!publicKey ? (
                 <WalletMultiButton style={{ width: '100%', background: '#f5f5f5', color: '#080808', border: 'none', fontFamily: 'DM Sans, sans-serif', fontSize: '15px', letterSpacing: '1px', padding: '18px', fontWeight: '600', justifyContent: 'center' }} />
               ) : (
-                <button
-                  onClick={handleSubmit}
-                  disabled={status !== 'idle' && status !== 'error'}
-                  style={{ width: '100%', background: status === 'idle' || status === 'error' ? '#c8a96e' : '#1a1a1a', color: status === 'idle' || status === 'error' ? '#080808' : '#444', border: 'none', padding: '20px', fontSize: '15px', letterSpacing: '2px', fontFamily: 'DM Sans, sans-serif', fontWeight: '700', cursor: status === 'idle' || status === 'error' ? 'pointer' : 'not-allowed', transition: 'all 0.2s', textTransform: 'uppercase' }}
+                <button onClick={handleSubmit}
+                  style={{ width: '100%', background: '#c8a96e', color: '#080808', border: 'none', padding: '20px', fontSize: '15px', letterSpacing: '2px', fontFamily: 'DM Sans, sans-serif', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase' }}
                 >
-                  {status === 'idle' || status === 'error' ? 'Submit Version — Enter The Ring' : 'Processing...'}
+                  Submit Version — Enter The Ring
                 </button>
               )}
               <div style={{ fontSize: '12px', color: '#2a2a2a', marginTop: '10px', textAlign: 'center', lineHeight: 1.6, fontFamily: '"Courier New", monospace' }}>
-                Free to submit · No SOL required · Winner gets {challenge.bounty * 0.7} SOL
+                Free to submit · No SOL required · Winner gets {(challenge.bounty*0.7).toFixed(2)} SOL
               </div>
             </div>
           </div>
