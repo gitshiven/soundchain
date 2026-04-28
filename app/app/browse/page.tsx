@@ -307,10 +307,17 @@ export default function Browse() {
                                 </div>
                               </div>
                               <div style={{ display: 'flex', gap: '10px' }}>
-                                <Link href={`/challenge/${ch.id}`} style={{ flex: 1, background: colors.accent, color: '#080808', padding: '16px', fontSize: '13px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', fontWeight: '700', cursor: 'pointer', textAlign: 'center', textDecoration: 'none', display: 'block' }}
-                                  onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
-                                  onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-                                >SUBMIT VERSION →</Link>
+                                {publicKey && publicKey.toString() === ch.composer_wallet ? (
+                                  <Link href={`/manage/${ch.id}`} style={{ flex: 1, background: '#f5f5f5', color: '#080808', padding: '16px', fontSize: '13px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', fontWeight: '700', cursor: 'pointer', textAlign: 'center', textDecoration: 'none', display: 'block' }}
+                                    onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+                                    onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                                  >MANAGE →</Link>
+                                ) : (
+                                  <Link href={`/challenge/${ch.id}`} style={{ flex: 1, background: colors.accent, color: '#080808', padding: '16px', fontSize: '13px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', fontWeight: '700', cursor: 'pointer', textAlign: 'center', textDecoration: 'none', display: 'block' }}
+                                    onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+                                    onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                                  >SUBMIT VERSION →</Link>
+                                )}
                                 <button onClick={() => handlePull(i)} style={{ background: 'transparent', border: '1px solid #222', color: '#555', padding: '16px 20px', fontSize: '11px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', cursor: 'pointer' }}>✕</button>
                               </div>
                             </div>
