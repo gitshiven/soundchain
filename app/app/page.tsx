@@ -6,42 +6,79 @@ import { IntroGate } from './intro';
 import { TextReveal } from './components/TextReveal';
 import Link from 'next/link';
 
+function GlitchIntro({ onComplete }: { onComplete: () => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [fading, setFading] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.play().catch(() => {});
+    const handleEnded = () => {
+      setFading(true);
+      setTimeout(onComplete, 800);
+    };
+    video.addEventListener('ended', handleEnded);
+    return () => video.removeEventListener('ended', handleEnded);
+  }, []);
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 99999,
+      background: '#000',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      opacity: fading ? 0 : 1,
+      transition: 'opacity 0.8s ease',
+    }}>
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        style={{
+          width: 'min(45vw, 45vh)',
+          height: 'min(45vw, 45vh)',
+          objectFit: 'cover',
+          mixBlendMode: 'lighten',
+        }}
+      >
+        <source src="/final_intro.mp4" type="video/mp4" />
+      </video>
+    </div>
+  );
+}
+
 export default function Home() {
   const { publicKey } = useWallet();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [entered, setEntered] = useState(true);
-  const [showIntro, setShowIntro] = useState(false);
+  const [phase, setPhase] = useState<'glitch'|'intro'|'main'>('glitch');
 
   useEffect(() => {
     const alreadyEntered = sessionStorage.getItem('soundchain_entered');
-    if (alreadyEntered) {
-      setEntered(true);
-      setShowIntro(false);
-    } else {
-      setEntered(false);
-      setShowIntro(true);
-    }
+    if (alreadyEntered) setPhase('main');
   }, []);
 
   useEffect(() => {
-    if (entered && videoRef.current) {
+    if (phase === 'main' && videoRef.current) {
       videoRef.current.play().catch(() => {});
     }
-  }, [entered]);
+  }, [phase]);
+
+  const handleGlitchComplete = () => setPhase('intro');
 
   const handleEnter = () => {
     sessionStorage.setItem('soundchain_entered', 'true');
-    setShowIntro(false);
-    setEntered(true);
+    setPhase('main');
   };
 
   return (
     <>
-      {showIntro && <IntroGate onEnter={handleEnter} />}
+      {phase === 'glitch' && <GlitchIntro onComplete={handleGlitchComplete} />}
+      {phase === 'intro' && <IntroGate onEnter={handleEnter} />}
+
       <main style={{
         background: '#080808', minHeight: '100vh', color: '#f5f5f5',
         fontFamily: '"Courier New", Courier, monospace', overflowX: 'hidden',
-        opacity: entered ? 1 : 0, transition: 'opacity 0.6s ease',
+        opacity: phase === 'main' ? 1 : 0, transition: 'opacity 0.6s ease',
       }}>
         <nav style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,

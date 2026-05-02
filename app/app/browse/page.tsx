@@ -15,6 +15,7 @@ interface Challenge {
   audio_cid: string;
   is_open: boolean;
   created_at: string;
+  winner_wallet?: string | null;
 }
 
 const ACCENTS = ['#c8a96e','#e879f9','#22d3ee','#4ade80','#f97316','#818cf8','#f43f5e','#14b8a6'];
@@ -102,7 +103,7 @@ function SleeveCanvas({ accent, pattern, title, size = 280 }: { accent: string; 
   return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
 }
 
-function ChallengeRow({ challenge, index, isComposer }: { challenge: Challenge; index: number; isComposer: boolean }) {
+function ChallengeRow({ challenge, index, isComposer, isWinner }: { challenge: Challenge; index: number; isComposer: boolean; isWinner: boolean }) {
   const [hovered, setHovered] = useState(false);
   const [visible, setVisible] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null);
@@ -148,6 +149,32 @@ function ChallengeRow({ challenge, index, isComposer }: { challenge: Challenge; 
 
       {/* DETAILS */}
       <div style={{ padding: '32px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        {isWinner && (
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(200,169,110,0.15), rgba(200,169,110,0.05))',
+            border: '1px solid rgba(200,169,110,0.3)',
+            padding: '10px 16px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '16px' }}>🏆</span>
+              <div>
+                <div style={{ fontSize: '11px', color: '#c8a96e', letterSpacing: '3px', fontFamily: '"Courier New", monospace', fontWeight: '700' }}>YOU WON THIS CHALLENGE</div>
+                <div style={{ fontSize: '10px', color: '#888', letterSpacing: '1px', marginTop: '2px' }}>{(challenge.bounty * 0.7).toFixed(2)} SOL was sent to your wallet</div>
+              </div>
+            </div>
+            <Link
+              href={`/winner/${challenge.id}`}
+              onClick={e => e.stopPropagation()}
+              style={{ background: '#c8a96e', color: '#080808', padding: '8px 20px', fontSize: '11px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', fontWeight: '700', textDecoration: 'none', whiteSpace: 'nowrap' }}
+            >
+              VIEW WIN →
+            </Link>
+          </div>
+        )}
         <div>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
             <div>
@@ -242,6 +269,35 @@ export default function Browse() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const [myStats, setMyStats] = useState({ challenged: 0, submitted: 0, won: 0 });
+
+  useEffect(() => {
+    if (!publicKey) return;
+    async function loadStats() {
+      const { data: myChalllenges } = await supabase
+        .from('challenges')
+        .select('id')
+        .eq('composer_wallet', publicKey!.toString());
+
+      const { data: mySubmissions } = await supabase
+        .from('submissions')
+        .select('id')
+        .eq('producer_wallet', publicKey!.toString());
+
+      const { data: myWins } = await supabase
+        .from('challenges')
+        .select('id')
+        .eq('winner_wallet', publicKey!.toString());
+
+      setMyStats({
+        challenged: myChalllenges?.length || 0,
+        submitted: mySubmissions?.length || 0,
+        won: myWins?.length || 0,
+      });
+    }
+    loadStats();
+  }, [publicKey]);
+
   const displayChallenges = challenges.length > 0 ? challenges : [
     { id: '1', title: 'Dark Trap Anthem', description: 'Need heavy 808s and dark melodies. Think Travis meets Metro.', bounty: 2.5, composer_wallet: 'EV9J5vRBzuFWXqGSy3jHDZg1vWJRW4v', audio_cid: '', is_open: true, created_at: new Date().toISOString() },
     { id: '2', title: 'Afrobeats Summer', description: 'Vibrant Afrobeats with guitar samples. Fun and danceable.', bounty: 1.8, composer_wallet: '7HnGmPpzAtCkwufNwW7W9ji6EuDL8qf8', audio_cid: '', is_open: true, created_at: new Date(Date.now() - 86400000).toISOString() },
@@ -261,6 +317,48 @@ export default function Browse() {
         <div style={{ fontSize: '11px', letterSpacing: '4px', color: '#444' }}>THE VAULT</div>
         <WalletMultiButton style={{ background: 'transparent', color: '#f5f5f5', border: '1px solid rgba(245,245,245,0.15)', fontFamily: '"Courier New", monospace', fontSize: '10px', letterSpacing: '2px', padding: '8px 18px', textTransform: 'uppercase' }} />
       </nav>
+
+      {publicKey && (
+        <div style={{
+          background: '#0a0a0a',
+          borderBottom: '1px solid #111',
+          padding: '12px 32px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '32px',
+          marginTop: '64px',
+          flexWrap: 'wrap',
+        }}>
+          <div style={{ fontSize: '10px', letterSpacing: '4px', color: '#444', fontFamily: '"Courier New", monospace' }}>
+            YOUR ACTIVITY
+          </div>
+          <div style={{ width: '1px', height: '16px', background: '#222' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '13px', fontFamily: '"Arial Black", sans-serif', color: '#f5f5f5' }}>{myStats.challenged}</div>
+            <div style={{ fontSize: '10px', color: '#555', letterSpacing: '2px' }}>CHALLENGE{myStats.challenged !== 1 ? 'S' : ''} POSTED</div>
+          </div>
+
+          <Link href="/my-submissions" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+          >
+            <div style={{ fontSize: '13px', fontFamily: '"Arial Black", sans-serif', color: '#f5f5f5' }}>{myStats.submitted}</div>
+            <div style={{ fontSize: '10px', color: '#555', letterSpacing: '2px' }}>SUBMISSION{myStats.submitted !== 1 ? 'S' : ''}</div>
+          </Link>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '13px', fontFamily: '"Arial Black", sans-serif', color: myStats.won > 0 ? '#c8a96e' : '#f5f5f5' }}>{myStats.won}</div>
+            <div style={{ fontSize: '10px', color: myStats.won > 0 ? '#c8a96e' : '#555', letterSpacing: '2px' }}>WIN{myStats.won !== 1 ? 'S' : ''}</div>
+          </div>
+
+          {myStats.won > 0 && (
+            <div style={{ fontSize: '10px', color: '#c8a96e', letterSpacing: '2px', border: '1px solid rgba(200,169,110,0.3)', padding: '4px 12px', fontFamily: '"Courier New", monospace', animation: 'pulse 2s ease-in-out infinite' }}>
+              🏆 WINNER
+            </div>
+          )}
+        </div>
+      )}
 
       {/* HERO */}
       <div ref={heroRef} style={{ position: 'relative', height: '100vh', overflow: 'hidden', display: 'flex', alignItems: 'flex-end' }}>
@@ -311,6 +409,7 @@ export default function Browse() {
               challenge={ch}
               index={i}
               isComposer={!!(publicKey && publicKey.toString() === ch.composer_wallet)}
+              isWinner={!!(publicKey && ch.winner_wallet && publicKey.toString() === ch.winner_wallet)}
             />
           ))}
         </div>

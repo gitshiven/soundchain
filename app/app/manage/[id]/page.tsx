@@ -28,211 +28,7 @@ interface Submission {
   created_at: string;
 }
 
-const SPINE_COLORS = [
-  '#c8a96e', '#e879f9', '#22d3ee', '#4ade80',
-  '#f97316', '#818cf8', '#f43f5e', '#14b8a6',
-];
-
-function CrateDig({ submissions, onSelect, selectedId, playingId, onPlay }: {
-  submissions: Submission[];
-  onSelect: (id: string) => void;
-  selectedId: string | null;
-  playingId: string | null;
-  onPlay: (sub: Submission) => void;
-}) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [focusedIndex, setFocusedIndex] = useState(0);
-  const [pulling, setPulling] = useState<number | null>(null);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const handleScroll = () => {
-      const scrollTop = el.scrollTop;
-      const perRecord = 120;
-      const idx = Math.min(Math.floor(scrollTop / perRecord), submissions.length - 1);
-      setFocusedIndex(idx);
-    };
-    el.addEventListener('scroll', handleScroll);
-    return () => el.removeEventListener('scroll', handleScroll);
-  }, [submissions.length]);
-
-  const handlePull = (i: number, sub: Submission) => {
-    setPulling(i);
-    setTimeout(() => {
-      onSelect(sub.id);
-      setPulling(null);
-    }, 600);
-  };
-
-  return (
-    <div style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      {/* Crate background */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: 'url(/crate.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        opacity: 0.4,
-        borderRadius: '4px',
-      }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(8,8,8,0.3), rgba(8,8,8,0.7))' }} />
-
-      {/* Amber glow */}
-      <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '80%', height: '40%', background: 'radial-gradient(ellipse, rgba(200,130,40,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-
-      {/* Records stack */}
-      <div
-        ref={containerRef}
-        style={{ position: 'relative', zIndex: 10, width: '85%', height: '75%', overflowY: 'scroll', scrollbarWidth: 'none', paddingTop: '20px', paddingBottom: `${submissions.length * 80}px` }}
-      >
-        <style>{`::-webkit-scrollbar{display:none}`}</style>
-        {submissions.map((sub, i) => {
-          const isFocused = i === focusedIndex;
-          const isPulling = pulling === i;
-          const isSelected = selectedId === sub.id;
-          const color = SPINE_COLORS[i % SPINE_COLORS.length];
-          const offset = (i - focusedIndex) * 28;
-          const scale = isFocused ? 1.04 : 0.96 - Math.abs(i - focusedIndex) * 0.02;
-          const opacity = isFocused ? 1 : Math.max(0.3, 1 - Math.abs(i - focusedIndex) * 0.25);
-          const tilt = (i - focusedIndex) * 3;
-
-          return (
-            <div
-              key={sub.id}
-              onClick={() => isFocused && handlePull(i, sub)}
-              style={{
-                position: 'absolute',
-                top: `${20 + i * 28}px`,
-                left: 0, right: 0,
-                height: '56px',
-                background: `linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 50%, #0a0a0a 100%)`,
-                border: `1px solid ${isSelected ? color : '#2a2a2a'}`,
-                borderLeft: `4px solid ${color}`,
-                display: 'flex', alignItems: 'center', gap: '16px',
-                padding: '0 16px',
-                cursor: isFocused ? 'pointer' : 'default',
-                transform: `translateY(${offset * -0.3}px) scale(${scale}) rotateX(${tilt}deg) ${isPulling ? 'translateY(-120px)' : ''}`,
-                opacity,
-                transition: isPulling ? 'transform 0.6s cubic-bezier(0.4,0,0.2,1), opacity 0.3s' : 'transform 0.2s ease, opacity 0.2s ease',
-                boxShadow: isFocused ? `0 8px 32px rgba(0,0,0,0.6), 0 0 20px ${color}22` : '0 2px 8px rgba(0,0,0,0.4)',
-                zIndex: submissions.length - i,
-              }}
-            >
-              <div style={{ width: '8px', height: '32px', background: color, borderRadius: '2px', flexShrink: 0, opacity: 0.8 }} />
-              <div style={{ flex: 1, overflow: 'hidden' }}>
-                <div style={{ fontSize: '11px', color: isFocused ? '#f5f5f5' : '#666', letterSpacing: '1px', fontFamily: '"Courier New", monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {sub.producer_wallet.slice(0, 8)}...{sub.producer_wallet.slice(-6)}
-                </div>
-                <div style={{ fontSize: '9px', color: '#444', letterSpacing: '2px', marginTop: '2px' }}>
-                  SUBMISSION #{i + 1} · {new Date(sub.created_at).toLocaleDateString()}
-                </div>
-              </div>
-              {isFocused && (
-                <div style={{ fontSize: '9px', color, letterSpacing: '2px', fontFamily: '"Courier New", monospace', animation: 'pulse 1.5s ease-in-out infinite' }}>
-                  PULL →
-                </div>
-              )}
-              {isSelected && (
-                <div style={{ fontSize: '9px', color, letterSpacing: '2px', fontFamily: '"Courier New", monospace' }}>✓ SELECTED</div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      <div style={{ position: 'absolute', bottom: '16px', left: '50%', transform: 'translateX(-50%)', fontSize: '9px', color: '#444', letterSpacing: '3px', fontFamily: '"Courier New", monospace', zIndex: 20 }}>
-        SCROLL TO FLIP · CLICK TO PULL
-      </div>
-
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
-    </div>
-  );
-}
-
-function Turntable({ submission, challenge, onCrown, status, playing, onPlay }: {
-  submission: Submission;
-  challenge: Challenge;
-  onCrown: () => void;
-  status: string;
-  playing: boolean;
-  onPlay: () => void;
-}) {
-  const color = SPINE_COLORS[0];
-  const [rotation, setRotation] = useState(0);
-  const animRef = useRef<number>(0);
-
-  useEffect(() => {
-    if (!playing) { cancelAnimationFrame(animRef.current); return; }
-    const spin = () => { setRotation(r => r + 0.5); animRef.current = requestAnimationFrame(spin); };
-    animRef.current = requestAnimationFrame(spin);
-    return () => cancelAnimationFrame(animRef.current);
-  }, [playing]);
-
-  return (
-    <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px' }}>
-      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/turntable.png)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.5 }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(8,8,8,0.4), rgba(8,8,8,0.85))' }} />
-      <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '60%', height: '40%', background: 'radial-gradient(ellipse, rgba(200,130,40,0.12) 0%, transparent 70%)' }} />
-
-      <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
-        {/* Spinning vinyl */}
-        <div style={{ position: 'relative', width: '180px', height: '180px', margin: '0 auto 24px', transform: `rotate(${rotation}deg)` }}>
-          <svg viewBox="0 0 180 180" style={{ width: '100%', height: '100%' }}>
-            <circle cx="90" cy="90" r="88" fill="#080808" stroke="#1a1a1a" strokeWidth="1"/>
-            {[20,30,40,50,60,70,80].map(r => (
-              <circle key={r} cx="90" cy="90" r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5"/>
-            ))}
-            <circle cx="90" cy="90" r="28" fill={SPINE_COLORS[0]} opacity="0.15"/>
-            <circle cx="90" cy="90" r="28" fill="none" stroke={SPINE_COLORS[0]} strokeWidth="1" opacity="0.4"/>
-            <circle cx="90" cy="90" r="4" fill="#c8a96e"/>
-            <circle cx="90" cy="90" r="88" fill="url(#shine)" opacity="0.06"/>
-            <defs>
-              <radialGradient id="shine" cx="30%" cy="30%">
-                <stop offset="0%" stopColor="white"/>
-                <stop offset="100%" stopColor="transparent"/>
-              </radialGradient>
-            </defs>
-          </svg>
-        </div>
-
-        <div style={{ fontSize: '10px', letterSpacing: '4px', color: '#c8a96e', marginBottom: '6px', fontFamily: '"Courier New", monospace' }}>NOW PLAYING</div>
-        <div style={{ fontSize: '16px', color: '#f5f5f5', fontWeight: '600', marginBottom: '4px', fontFamily: '"Courier New", monospace' }}>
-          {submission.producer_wallet.slice(0, 8)}...{submission.producer_wallet.slice(-6)}
-        </div>
-        {submission.note && (
-          <div style={{ fontSize: '12px', color: '#666', marginBottom: '16px', maxWidth: '280px', lineHeight: 1.6, fontFamily: 'DM Sans, sans-serif' }}>
-            "{submission.note}"
-          </div>
-        )}
-
-        <button onClick={onPlay} style={{ background: 'transparent', border: '1px solid #333', color: '#888', padding: '10px 24px', fontSize: '12px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', cursor: 'pointer', marginBottom: '24px', transition: 'all 0.2s' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#c8a96e'; (e.currentTarget as HTMLButtonElement).style.color = '#c8a96e'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#333'; (e.currentTarget as HTMLButtonElement).style.color = '#888'; }}
-        >
-          {playing ? '⏸ PAUSE' : '▶ PLAY SUBMISSION'}
-        </button>
-
-        <div style={{ borderTop: '1px solid #1a1a1a', paddingTop: '20px', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', letterSpacing: '1px', fontFamily: '"Courier New", monospace', marginBottom: '8px' }}>
-            <span style={{ color: '#c8a96e' }}>70% → PRODUCER</span>
-            <span style={{ color: '#555' }}>20% → PLATFORM</span>
-            <span style={{ color: '#444' }}>10% → COMPOSER</span>
-          </div>
-          <div style={{ fontFamily: '"Arial Black", sans-serif', fontSize: '36px', color: '#c8a96e', letterSpacing: '-1px', lineHeight: 1 }}>
-            {(challenge.bounty * 0.7).toFixed(2)} SOL
-          </div>
-          <div style={{ fontSize: '10px', color: '#444', letterSpacing: '2px', fontFamily: '"Courier New", monospace', marginTop: '4px' }}>TO THIS PRODUCER</div>
-        </div>
-
-        <button onClick={onCrown} disabled={status !== 'idle' && status !== 'error'}
-          style={{ background: status === 'idle' || status === 'error' ? '#c8a96e' : '#1a1a1a', color: status === 'idle' || status === 'error' ? '#080808' : '#444', border: 'none', padding: '16px 40px', fontSize: '14px', letterSpacing: '3px', fontFamily: '"Courier New", monospace', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase' }}>
-          {status === 'idle' || status === 'error' ? 'CROWN THE WINNER' : status === 'signing' ? 'AWAITING PHANTOM...' : status === 'confirming' ? 'CONFIRMING...' : 'SAVING...'}
-        </button>
-      </div>
-    </div>
-  );
-}
+const ACCENTS = ['#c8a96e','#e879f9','#22d3ee','#4ade80','#f97316','#818cf8','#f43f5e','#14b8a6'];
 
 export default function ManageChallenge({ params }: { params: Promise<{ id: string }> }) {
   const { publicKey, sendTransaction } = useWallet();
@@ -245,10 +41,10 @@ export default function ManageChallenge({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [playing, setPlaying] = useState(false);
   const [status, setStatus] = useState<'idle'|'signing'|'confirming'|'saving'|'done'|'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [txSig, setTxSig] = useState('');
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -262,18 +58,22 @@ export default function ManageChallenge({ params }: { params: Promise<{ id: stri
     load();
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const handlePlay = (sub: Submission) => {
     if (!sub.audio_cid) return;
     const url = `https://gateway.pinata.cloud/ipfs/${sub.audio_cid}`;
     if (audioRef.current) {
-      if (playing && playingId === sub.id) {
+      if (playingId === sub.id) {
         audioRef.current.pause();
-        setPlaying(false);
         setPlayingId(null);
       } else {
         audioRef.current.src = url;
         audioRef.current.play();
-        setPlaying(true);
         setPlayingId(sub.id);
       }
     }
@@ -334,108 +134,251 @@ export default function ManageChallenge({ params }: { params: Promise<{ id: stri
   );
 
   if (status === 'done') return (
-    <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"Courier New", monospace', color: '#f5f5f5' }}>
-      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/winner-success.png)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.4 }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(8,8,8,0.5), rgba(8,8,8,0.85))' }} />
-      <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '32px' }}>
-        <div style={{ fontSize: '11px', letterSpacing: '6px', color: '#c8a96e', marginBottom: '24px' }}>── DEAL DONE ON-CHAIN ──</div>
-        <div style={{ fontFamily: '"Arial Black", sans-serif', fontSize: 'clamp(48px, 8vw, 96px)', fontWeight: '900', lineHeight: 0.9, marginBottom: '32px' }}>
+    <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 9999, fontFamily: '"Courier New", monospace', color: '#f5f5f5', overflow: 'hidden' }}>
+      {/* Background image */}
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/winner-page.png)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.7 }} />
+      {/* Gradient overlay */}
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(8,8,8,0.95) 0%, rgba(8,8,8,0.2) 40%, rgba(8,8,8,0.2) 60%, rgba(8,8,8,0.95) 100%)' }} />
+      {/* Amber glow */}
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, rgba(200,130,40,0.08) 0%, transparent 70%)' }} />
+
+      {/* Top — YOU WON */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '48px 48px 0', zIndex: 10 }}>
+        <div style={{ fontSize: '11px', letterSpacing: '6px', color: '#c8a96e', marginBottom: '24px' }}>── CHALLENGE COMPLETE ──</div>
+        <div style={{ fontFamily: '"Arial Black", sans-serif', fontSize: 'clamp(56px, 9vw, 120px)', fontWeight: '900', lineHeight: 0.85, letterSpacing: '-3px' }}>
           WINNER<br />
-          <span style={{ color: 'transparent', WebkitTextStroke: '2px #f5f5f5' }}>CROWNED</span>
+          <span style={{ color: 'transparent', WebkitTextStroke: '2px #c8a96e' }}>CROWNED</span>
         </div>
-        <div style={{ fontSize: '12px', color: '#555', letterSpacing: '1px', marginBottom: '8px' }}>TX SIGNATURE</div>
-        <div style={{ fontSize: '10px', color: '#c8a96e', wordBreak: 'break-all', marginBottom: '32px', border: '1px solid #1a1a1a', padding: '12px', maxWidth: '480px' }}>{txSig}</div>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-          <Link href="/browse" style={{ background: '#f5f5f5', color: '#080808', padding: '14px 28px', fontSize: '14px', letterSpacing: '2px', fontWeight: '700', textDecoration: 'none' }}>BACK TO VAULT</Link>
-          <Link href="/" style={{ border: '1px solid #333', color: '#f5f5f5', padding: '14px 28px', fontSize: '14px', letterSpacing: '2px', textDecoration: 'none' }}>HOME</Link>
+      </div>
+
+      {/* Center — SOL amount */}
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10, textAlign: 'center' }}>
+        <div style={{ fontFamily: '"Arial Black", sans-serif', fontSize: 'clamp(48px, 8vw, 96px)', color: '#c8a96e', letterSpacing: '-2px', lineHeight: 1, textShadow: '0 0 40px rgba(200,169,110,0.4)' }}>
+          {(challenge.bounty * 0.7).toFixed(2)} SOL
+        </div>
+        <div style={{ fontSize: '11px', color: '#888', letterSpacing: '4px', marginTop: '8px' }}>PAID TO PRODUCER</div>
+        <div style={{ fontSize: '13px', color: '#555', letterSpacing: '2px', marginTop: '6px', fontFamily: 'DM Sans, sans-serif' }}>
+          {selectedSub?.producer_wallet.slice(0, 8)}...{selectedSub?.producer_wallet.slice(-8)}
+        </div>
+      </div>
+
+      {/* Bottom — TX + buttons */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 48px 48px', zIndex: 10 }}>
+        <div style={{ fontSize: '10px', color: '#444', letterSpacing: '2px', marginBottom: '6px' }}>TX SIGNATURE</div>
+        <div style={{ fontSize: '10px', color: '#c8a96e', wordBreak: 'break-all', marginBottom: '24px', fontFamily: '"Courier New", monospace', opacity: 0.7 }}>{txSig}</div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <Link href="/browse" style={{ background: '#f5f5f5', color: '#080808', padding: '14px 32px', fontSize: '13px', letterSpacing: '2px', fontWeight: '700', textDecoration: 'none', display: 'inline-block' }}>
+            BACK TO VAULT
+          </Link>
+          <Link href="/" style={{ border: '1px solid #333', color: '#f5f5f5', padding: '14px 32px', fontSize: '13px', letterSpacing: '2px', textDecoration: 'none', display: 'inline-block' }}>
+            HOME
+          </Link>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div style={{ background: '#080808', height: '100vh', overflow: 'hidden', color: '#f5f5f5', fontFamily: '"Courier New", monospace' }}>
-      <audio ref={audioRef} onEnded={() => { setPlaying(false); setPlayingId(null); }} />
+    <div style={{ background: '#080808', minHeight: '100vh', color: '#f5f5f5', fontFamily: '"Courier New", monospace' }}>
+      <audio ref={audioRef} onEnded={() => setPlayingId(null)} />
 
       {/* NAV */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 32px', borderBottom: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)', background: 'rgba(8,8,8,0.9)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <Link href="/"><img src="/soundchain-wordmark.svg" alt="SoundChain" style={{ height: '28px' }} /></Link>
           <div style={{ width: '1px', height: '16px', background: '#222' }} />
-          <button onClick={() => window.history.length > 1 ? router.back() : router.push('/')} style={{ fontSize: '11px', letterSpacing: '3px', color: '#555', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: '"Courier New", monospace' }} onMouseEnter={e => (e.currentTarget.style.color = '#f5f5f5')} onMouseLeave={e => (e.currentTarget.style.color = '#555')}>← BACK</button>
+          <button onClick={() => window.history.length > 1 ? router.back() : router.push('/browse')} style={{ fontSize: '11px', letterSpacing: '3px', color: '#555', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: '"Courier New", monospace' }} onMouseEnter={e => (e.currentTarget.style.color = '#f5f5f5')} onMouseLeave={e => (e.currentTarget.style.color = '#555')}>← BACK</button>
         </div>
-        <div style={{ fontSize: '11px', letterSpacing: '4px', color: '#444' }}>SELECT WINNER — {challenge.title.toUpperCase()}</div>
+        <div style={{ fontSize: '11px', letterSpacing: '4px', color: '#444' }}>SELECT WINNER</div>
         <WalletMultiButton style={{ background: 'transparent', color: '#f5f5f5', border: '1px solid rgba(245,245,245,0.15)', fontFamily: '"Courier New", monospace', fontSize: '10px', letterSpacing: '2px', padding: '8px 18px', textTransform: 'uppercase' }} />
       </nav>
 
       {/* HERO */}
-      <div style={{ position: 'relative', height: '220px', overflow: 'hidden', marginTop: '57px' }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/race-hero.png)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.5 }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(8,8,8,0.2), rgba(8,8,8,0.95))' }} />
-        <div style={{ position: 'absolute', bottom: '32px', left: '40px' }}>
-          <div style={{ fontSize: '11px', letterSpacing: '6px', color: '#c8a96e', marginBottom: '10px' }}>── SELECT THE WINNER</div>
-          <div style={{ fontFamily: '"Arial Black", sans-serif', fontSize: 'clamp(36px, 5vw, 64px)', fontWeight: '900', lineHeight: 0.9, letterSpacing: '-2px' }}>
-            CROWN THE<br />
-            <span style={{ color: 'transparent', WebkitTextStroke: '1.5px #f5f5f5' }}>BEST BEAT</span>
+      <div style={{ position: 'relative', height: '100vh', overflow: 'hidden', display: 'flex', alignItems: 'flex-end' }}>
+        <div style={{ position: 'absolute', inset: 0, transform: `translateY(${scrollY * 0.3}px)` }}>
+          <img src="/winner-success.png" alt="" style={{ width: '100%', height: '110%', objectFit: 'cover', objectPosition: 'center', mixBlendMode: 'lighten', opacity: 0.85 }} />
+        </div>
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, rgba(8,8,8,0.2) 0%, rgba(8,8,8,0.6) 100%)' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to bottom, transparent, #080808)' }} />
+
+        <div style={{ position: 'relative', zIndex: 10, padding: '0 40px 60px', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div>
+            <div style={{ fontSize: '11px', letterSpacing: '6px', color: '#c8a96e', marginBottom: '16px' }}>── CROWN THE BEST BEAT</div>
+            <div style={{ fontFamily: '"Arial Black", sans-serif', fontSize: 'clamp(64px, 10vw, 140px)', fontWeight: '900', lineHeight: 0.85, letterSpacing: '-4px' }}>
+              SELECT<br />
+              <span style={{ color: 'transparent', WebkitTextStroke: '2px #f5f5f5' }}>THE</span><br />
+              WINNER
+            </div>
+          </div>
+          <div style={{ textAlign: 'right', paddingBottom: '8px' }}>
+            <div style={{ fontFamily: '"Arial Black", sans-serif', fontSize: 'clamp(36px, 5vw, 64px)', color: '#c8a96e', letterSpacing: '-1px', lineHeight: 1 }}>
+              {challenge.bounty} SOL
+            </div>
+            <div style={{ fontSize: '11px', color: '#555', letterSpacing: '4px', marginTop: '4px' }}>
+              PRIZE POOL · {submissions.length} SUBMISSION{submissions.length !== 1 ? 'S' : ''}
+            </div>
+            <div style={{ fontSize: '10px', color: '#333', letterSpacing: '3px', marginTop: '8px' }}>SCROLL TO JUDGE ↓</div>
           </div>
         </div>
-        <div style={{ position: 'absolute', bottom: '32px', right: '40px', textAlign: 'right' }}>
-          <div style={{ fontFamily: '"Arial Black", sans-serif', fontSize: '48px', color: '#c8a96e', letterSpacing: '-1px', lineHeight: 1 }}>{challenge.bounty} SOL</div>
-          <div style={{ fontSize: '10px', color: '#555', letterSpacing: '3px', marginTop: '4px' }}>PRIZE POOL · {submissions.length} SUBMISSIONS</div>
-        </div>
       </div>
 
-      {/* MAIN — CRATE + TURNTABLE */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', height: 'calc(100vh - 277px)' }}>
-
-        {/* LEFT — CRATE */}
-        <div style={{ borderRight: '1px solid #1a1a1a', position: 'relative' }}>
-          {submissions.length === 0 ? (
-            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ fontSize: '11px', color: '#444', letterSpacing: '4px' }}>NO SUBMISSIONS YET</div>
-              <div style={{ fontSize: '10px', color: '#333', letterSpacing: '2px' }}>CHALLENGE IS STILL OPEN</div>
-            </div>
-          ) : (
-            <CrateDig
-              submissions={submissions}
-              onSelect={setSelectedId}
-              selectedId={selectedId}
-              playingId={playingId}
-              onPlay={handlePlay}
-            />
-          )}
-        </div>
-
-        {/* RIGHT — TURNTABLE */}
-        <div style={{ position: 'relative' }}>
-          {!selectedSub ? (
-            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px', position: 'relative' }}>
-              <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/turntable.png)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.2 }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,8,8,0.7)' }} />
-              <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
-                <div style={{ fontSize: '32px', color: '#1a1a1a', marginBottom: '16px' }}>◎</div>
-                <div style={{ fontSize: '11px', color: '#333', letterSpacing: '4px' }}>PULL A RECORD</div>
-                <div style={{ fontSize: '10px', color: '#222', letterSpacing: '2px', marginTop: '6px' }}>TO LOAD THE TURNTABLE</div>
-              </div>
-            </div>
-          ) : (
-            <Turntable
-              submission={selectedSub}
-              challenge={challenge}
-              onCrown={handleCrown}
-              status={status}
-              playing={playing && playingId === selectedSub.id}
-              onPlay={() => handlePlay(selectedSub)}
-            />
-          )}
-
-          {status === 'error' && (
-            <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', border: '1px solid rgba(255,46,0,0.3)', padding: '12px 16px', fontSize: '12px', color: '#ff2e00', fontFamily: '"Courier New", monospace' }}>
-              ✕ {errorMsg}
-            </div>
-          )}
-        </div>
+      {/* CHALLENGE BRIEF */}
+      <div style={{ background: '#0a0a0a', borderTop: '1px solid #111', borderBottom: '1px solid #111', padding: '20px 40px' }}>
+        <div style={{ fontSize: '10px', letterSpacing: '4px', color: '#c8a96e', marginBottom: '6px' }}>THE CHALLENGE</div>
+        <div style={{ fontSize: '18px', fontWeight: '700', marginBottom: '6px', fontFamily: '"Arial Black", sans-serif' }}>{challenge.title.toUpperCase()}</div>
+        <div style={{ fontSize: '14px', color: '#555', lineHeight: 1.7 }}>{challenge.description}</div>
       </div>
+
+      {/* SUBMISSIONS */}
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '64px 40px 160px' }}>
+        <div style={{ marginBottom: '48px' }}>
+          <div style={{ fontSize: '11px', letterSpacing: '5px', color: '#c8a96e', marginBottom: '8px' }}>── THE SUBMISSIONS</div>
+          <div style={{ fontFamily: '"Arial Black", sans-serif', fontSize: '40px', fontWeight: '900', letterSpacing: '-1px' }}>
+            {submissions.length === 0 ? 'NO SUBMISSIONS YET' : `${submissions.length} PRODUCER${submissions.length !== 1 ? 'S' : ''} ENTERED`}
+          </div>
+        </div>
+
+        {submissions.length === 0 ? (
+          <div style={{ border: '1px solid #111', padding: '48px', textAlign: 'center' }}>
+            <div style={{ fontSize: '13px', color: '#333', letterSpacing: '3px' }}>CHALLENGE IS STILL OPEN</div>
+            <div style={{ fontSize: '12px', color: '#222', letterSpacing: '2px', marginTop: '8px' }}>CHECK BACK LATER</div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+            {submissions.map((sub, i) => {
+              const accent = ACCENTS[i % ACCENTS.length];
+              const isSelected = selectedId === sub.id;
+              const isPlaying = playingId === sub.id;
+
+              return (
+                <div
+                  key={sub.id}
+                  onClick={() => setSelectedId(sub.id)}
+                  style={{
+                    display: 'grid', gridTemplateColumns: '4px 1fr auto',
+                    borderBottom: '1px solid #111',
+                    background: isSelected ? 'rgba(255,255,255,0.02)' : 'transparent',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                  }}
+                >
+                  {/* Accent bar */}
+                  <div style={{ background: isSelected ? accent : '#1a1a1a', transition: 'background 0.3s' }} />
+
+                  {/* Content */}
+                  <div style={{ padding: '28px 32px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
+                      <div>
+                        <div style={{ fontSize: '10px', color: accent, letterSpacing: '4px', marginBottom: '6px', opacity: isSelected ? 1 : 0.6 }}>
+                          SUBMISSION #{String(i + 1).padStart(2, '0')}
+                        </div>
+                        <div style={{ fontSize: '16px', fontWeight: '700', letterSpacing: '1px', color: isSelected ? '#f5f5f5' : '#888', transition: 'color 0.2s', fontFamily: '"Courier New", monospace' }}>
+                          {sub.producer_wallet.slice(0, 8)}...{sub.producer_wallet.slice(-8)}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#333', letterSpacing: '2px', marginTop: '4px' }}>
+                        {new Date(sub.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+
+                    {sub.note && (
+                      <div style={{ fontSize: '14px', color: '#555', lineHeight: 1.7, marginBottom: '16px', maxWidth: '560px', fontFamily: 'DM Sans, sans-serif' }}>
+                        "{sub.note}"
+                      </div>
+                    )}
+
+                    {sub.audio_cid && (
+                      <button
+                        onClick={e => { e.stopPropagation(); handlePlay(sub); }}
+                        style={{ background: 'transparent', border: `1px solid ${isPlaying ? accent : '#333'}`, color: isPlaying ? accent : '#555', padding: '8px 20px', fontSize: '11px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', cursor: 'pointer', transition: 'all 0.2s' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = accent; (e.currentTarget as HTMLButtonElement).style.color = accent; }}
+                        onMouseLeave={e => { if (!isPlaying) { (e.currentTarget as HTMLButtonElement).style.borderColor = '#333'; (e.currentTarget as HTMLButtonElement).style.color = '#555'; } }}
+                      >
+                        {isPlaying ? '⏸ PAUSE' : '▶ PLAY'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Select indicator */}
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '0 32px' }}>
+                    <div style={{
+                      width: '20px', height: '20px',
+                      border: `2px solid ${isSelected ? accent : '#333'}`,
+                      borderRadius: '50%',
+                      background: isSelected ? accent : 'transparent',
+                      transition: 'all 0.2s',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {isSelected && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#080808' }} />}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* STICKY CONFIRM BAR */}
+      {selectedSub && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
+          background: 'rgba(8,8,8,0.97)', borderTop: '1px solid #1a1a1a',
+          backdropFilter: 'blur(12px)', padding: '16px 40px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px',
+          animation: 'slideUp 0.3s ease',
+        }}>
+          <div>
+            <div style={{ fontSize: '10px', color: '#555', letterSpacing: '3px', marginBottom: '4px' }}>SELECTED PRODUCER</div>
+            <div style={{ fontSize: '14px', color: '#f5f5f5', fontFamily: '"Courier New", monospace' }}>
+              {selectedSub.producer_wallet.slice(0, 12)}...{selectedSub.producer_wallet.slice(-8)}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', color: '#c8a96e', letterSpacing: '1px' }}>70% → PRODUCER</div>
+              <div style={{ fontSize: '18px', fontFamily: '"Arial Black", sans-serif', color: '#c8a96e' }}>{(challenge.bounty * 0.7).toFixed(2)} SOL</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', color: '#555', letterSpacing: '1px' }}>20% → PLATFORM</div>
+              <div style={{ fontSize: '18px', fontFamily: '"Arial Black", sans-serif', color: '#555' }}>{(challenge.bounty * 0.2).toFixed(2)} SOL</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', color: '#444', letterSpacing: '1px' }}>10% → YOU</div>
+              <div style={{ fontSize: '18px', fontFamily: '"Arial Black", sans-serif', color: '#444' }}>{(challenge.bounty * 0.1).toFixed(2)} SOL</div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+            {status === 'error' && (
+              <div style={{ fontSize: '11px', color: '#ff2e00', letterSpacing: '1px' }}>✕ {errorMsg}</div>
+            )}
+            <button
+              onClick={handleCrown}
+              disabled={status !== 'idle' && status !== 'error'}
+              style={{
+                background: status === 'idle' || status === 'error' ? '#c8a96e' : '#1a1a1a',
+                color: status === 'idle' || status === 'error' ? '#080808' : '#444',
+                border: 'none', padding: '16px 48px',
+                fontSize: '14px', letterSpacing: '3px',
+                fontFamily: '"Courier New", monospace', fontWeight: '700',
+                cursor: status === 'idle' || status === 'error' ? 'pointer' : 'not-allowed',
+                transition: 'all 0.2s', textTransform: 'uppercase', whiteSpace: 'nowrap',
+              }}
+            >
+              {status === 'idle' || status === 'error' ? 'CROWN THE WINNER →' : status === 'signing' ? 'AWAITING PHANTOM...' : status === 'confirming' ? 'CONFIRMING...' : 'SAVING...'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #080808; }
+        ::-webkit-scrollbar-thumb { background: #333; }
+      `}</style>
     </div>
   );
 }
