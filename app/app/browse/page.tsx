@@ -256,7 +256,7 @@ export default function Browse() {
 
   useEffect(() => {
     async function load() {
-      const { data, error } = await supabase.from('challenges').select('*').eq('is_open', true).order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('challenges').select('*').order('created_at', { ascending: false });
       if (!error && data) setChallenges(data);
       setLoading(false);
     }
@@ -298,7 +298,14 @@ export default function Browse() {
     loadStats();
   }, [publicKey]);
 
-  const displayChallenges = challenges.length > 0 ? challenges : [
+  const filteredChallenges = challenges.filter(ch => {
+    if (ch.is_open) return true;
+    if (publicKey && ch.winner_wallet === publicKey.toString()) return true;
+    if (publicKey && ch.composer_wallet === publicKey.toString()) return true;
+    return false;
+  });
+
+  const displayChallenges = filteredChallenges.length > 0 ? filteredChallenges : [
     { id: '1', title: 'Dark Trap Anthem', description: 'Need heavy 808s and dark melodies. Think Travis meets Metro.', bounty: 2.5, composer_wallet: 'EV9J5vRBzuFWXqGSy3jHDZg1vWJRW4v', audio_cid: '', is_open: true, created_at: new Date().toISOString() },
     { id: '2', title: 'Afrobeats Summer', description: 'Vibrant Afrobeats with guitar samples. Fun and danceable.', bounty: 1.8, composer_wallet: '7HnGmPpzAtCkwufNwW7W9ji6EuDL8qf8', audio_cid: '', is_open: true, created_at: new Date(Date.now() - 86400000).toISOString() },
     { id: '3', title: 'Lo-Fi Study Tape', description: 'Chill lo-fi hip hop. Nostalgic vinyl crackle vibes.', bounty: 0.9, composer_wallet: 'ART1stWa11etXXXXXXXXXXXXXXXXXXXX', audio_cid: '', is_open: true, created_at: new Date(Date.now() - 172800000).toISOString() },
@@ -344,7 +351,7 @@ export default function Browse() {
             onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           >
             <div style={{ fontSize: '13px', fontFamily: '"Arial Black", sans-serif', color: '#f5f5f5' }}>{myStats.submitted}</div>
-            <div style={{ fontSize: '10px', color: '#555', letterSpacing: '2px' }}>SUBMISSION{myStats.submitted !== 1 ? 'S' : ''}</div>
+            <div style={{ fontSize: '10px', color: '#555', letterSpacing: '2px' }}>{myStats.submitted !== 1 ? 'SUBMISSIONS AS PRODUCER' : 'SUBMISSION AS PRODUCER'}</div>
           </Link>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -387,7 +394,7 @@ export default function Browse() {
           </div>
           <div style={{ textAlign: 'right', paddingBottom: '8px' }}>
             <div style={{ fontFamily: '"Arial Black", sans-serif', fontSize: 'clamp(36px, 5vw, 64px)', color: '#c8a96e', letterSpacing: '-1px', lineHeight: 1 }}>
-              {displayChallenges.length}
+              {filteredChallenges.length > 0 ? filteredChallenges.length : displayChallenges.length}
             </div>
             <div style={{ fontSize: '11px', color: '#555', letterSpacing: '4px', marginTop: '4px' }}>OPEN CHALLENGES</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end', marginTop: '16px', fontSize: '10px', color: '#333', letterSpacing: '3px' }}>

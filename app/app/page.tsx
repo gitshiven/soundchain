@@ -13,13 +13,31 @@ function GlitchIntro({ onComplete }: { onComplete: () => void }) {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    video.play().catch(() => {});
+
+    // Force play
+    video.play().catch(() => {
+      // If autoplay blocked — skip straight to complete
+      setFading(true);
+      setTimeout(onComplete, 800);
+    });
+
+    // Handle ended
     const handleEnded = () => {
       setFading(true);
       setTimeout(onComplete, 800);
     };
     video.addEventListener('ended', handleEnded);
-    return () => video.removeEventListener('ended', handleEnded);
+
+    // Safety timeout — if video takes too long, force complete
+    const timeout = setTimeout(() => {
+      setFading(true);
+      setTimeout(onComplete, 800);
+    }, 12000);
+
+    return () => {
+      video.removeEventListener('ended', handleEnded);
+      clearTimeout(timeout);
+    };
   }, []);
 
   return (
@@ -33,10 +51,9 @@ function GlitchIntro({ onComplete }: { onComplete: () => void }) {
       <video
         ref={videoRef}
         playsInline
-        muted
         style={{
-          width: 'min(45vw, 45vh)',
-          height: 'min(45vw, 45vh)',
+          width: 'min(35vw, 35vh)',
+          height: 'min(35vw, 35vh)',
           objectFit: 'cover',
           mixBlendMode: 'lighten',
         }}
@@ -50,11 +67,15 @@ function GlitchIntro({ onComplete }: { onComplete: () => void }) {
 export default function Home() {
   const { publicKey } = useWallet();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [phase, setPhase] = useState<'glitch'|'intro'|'main'>('glitch');
+  const [phase, setPhase] = useState<'glitch'|'intro'|'main'|null>(null);
 
   useEffect(() => {
     const alreadyEntered = sessionStorage.getItem('soundchain_entered');
-    if (alreadyEntered) setPhase('main');
+    if (alreadyEntered) {
+      setPhase('main');
+    } else {
+      setPhase('glitch');
+    }
   }, []);
 
   useEffect(() => {
@@ -64,6 +85,8 @@ export default function Home() {
   }, [phase]);
 
   const handleGlitchComplete = () => setPhase('intro');
+
+  if (phase === null) return <div style={{ background: '#000', minHeight: '100vh' }} />;
 
   const handleEnter = () => {
     sessionStorage.setItem('soundchain_entered', 'true');
@@ -172,7 +195,7 @@ export default function Home() {
           </span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid #1a1a1a' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', flexWrap: 'wrap', borderBottom: '1px solid #1a1a1a' }}>
           {[
             { num: '01', title: 'POST', sub: 'CHALLENGE', desc: 'Upload your track idea. Set a SOL bounty. Smart contract locks funds in escrow — trustless, instant, permanent.' },
             { num: '02', title: 'COMPETE', sub: 'PRODUCE', desc: 'Producers submit their versions. Community listens. The best remix rises. No gatekeepers. No labels.' },
@@ -191,7 +214,7 @@ export default function Home() {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid #1a1a1a', background: '#0d0d0d' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', flexWrap: 'wrap', borderBottom: '1px solid #1a1a1a', background: '#0d0d0d' }}>
           {[
             { value: '$20B+', label: 'ROYALTY MARKET SIZE' },
             { value: '0%', label: 'MIDDLEMEN INVOLVED' },
