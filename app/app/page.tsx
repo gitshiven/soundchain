@@ -43,7 +43,7 @@ function GlitchIntro({ onComplete }: { onComplete: () => void }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 99999,
-      background: '#000',
+      background: 'transparent',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       opacity: fading ? 0 : 1,
       transition: 'opacity 0.8s ease',
@@ -54,7 +54,7 @@ function GlitchIntro({ onComplete }: { onComplete: () => void }) {
         style={{
           width: 'min(35vw, 35vh)',
           height: 'min(35vw, 35vh)',
-          objectFit: 'cover',
+          objectFit: 'cover', borderRadius: '50%',
           mixBlendMode: 'lighten',
         }}
       >
@@ -121,7 +121,7 @@ export default function Home() {
 
         <div style={{ position: 'relative', height: '100vh', display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
           <video ref={videoRef} autoPlay muted loop playsInline style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.55,
+            position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', opacity: 0.55,
           }}>
             <source src="/vinyl.mp4" type="video/mp4" />
           </video>

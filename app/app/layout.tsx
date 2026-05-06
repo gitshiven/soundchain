@@ -8,6 +8,10 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'SoundChain',
   description: 'Decentralized music collaboration on Solana',
+  icons: {
+    icon: '/soundchain-icon.svg',
+    apple: '/soundchain-icon.svg',
+  },
 };
 
 export default function RootLayout({

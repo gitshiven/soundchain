@@ -178,9 +178,7 @@ function ChallengeRow({ challenge, index, isComposer, isWinner }: { challenge: C
         <div>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
             <div>
-              <div style={{ fontSize: '10px', color: accent, letterSpacing: '4px', fontFamily: '"Courier New", monospace', marginBottom: '8px' }}>
-                CHALLENGE #{String(index + 1).padStart(3, '0')} · OPEN
-              </div>
+
               <div style={{ fontFamily: '"Arial Black", sans-serif', fontSize: 'clamp(22px, 3vw, 36px)', fontWeight: '900', lineHeight: 0.95, letterSpacing: '-1px', color: '#f5f5f5' }}>
                 {challenge.title.toUpperCase()}
               </div>
@@ -228,16 +226,22 @@ function ChallengeRow({ challenge, index, isComposer, isWinner }: { challenge: C
 
           {/* Buttons */}
           <div style={{ display: 'flex', gap: '12px' }}>
-            {isComposer ? (
-              <Link href={`/manage/${challenge.id}`} style={{ background: '#f5f5f5', color: '#080808', padding: '14px 32px', fontSize: '13px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', fontWeight: '700', textDecoration: 'none', display: 'inline-block', transition: 'opacity 0.2s' }}
-                onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
-                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-              >MANAGE →</Link>
+            {challenge.is_open ? (
+              isComposer ? (
+                <Link href={`/manage/${challenge.id}`} style={{ background: '#f5f5f5', color: '#080808', padding: '14px 32px', fontSize: '13px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', fontWeight: '700', textDecoration: 'none', display: 'inline-block', transition: 'opacity 0.2s' }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                >MANAGE →</Link>
+              ) : (
+                <Link href={`/challenge/${challenge.id}`} style={{ background: accent, color: '#080808', padding: '14px 32px', fontSize: '13px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', fontWeight: '700', textDecoration: 'none', display: 'inline-block', transition: 'opacity 0.2s' }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                >SUBMIT VERSION →</Link>
+              )
             ) : (
-              <Link href={`/challenge/${challenge.id}`} style={{ background: accent, color: '#080808', padding: '14px 32px', fontSize: '13px', letterSpacing: '2px', fontFamily: '"Courier New", monospace', fontWeight: '700', textDecoration: 'none', display: 'inline-block', transition: 'opacity 0.2s' }}
-                onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
-                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-              >SUBMIT VERSION →</Link>
+              <div style={{ fontSize: '11px', color: '#444', letterSpacing: '3px', fontFamily: '"Courier New", monospace', padding: '14px 0' }}>
+                CHALLENGE CLOSED
+              </div>
             )}
           </div>
         </div>
@@ -298,12 +302,18 @@ export default function Browse() {
     loadStats();
   }, [publicKey]);
 
-  const filteredChallenges = challenges.filter(ch => {
-    if (ch.is_open) return true;
-    if (publicKey && ch.winner_wallet === publicKey.toString()) return true;
-    if (publicKey && ch.composer_wallet === publicKey.toString()) return true;
-    return false;
-  });
+  const filteredChallenges = challenges
+    .filter(ch => {
+      if (ch.is_open) return true;
+      if (publicKey && ch.winner_wallet === publicKey.toString()) return true;
+      if (publicKey && ch.composer_wallet === publicKey.toString()) return true;
+      return false;
+    })
+    .sort((a, b) => {
+      if (a.is_open && !b.is_open) return -1;
+      if (!a.is_open && b.is_open) return 1;
+      return 0;
+    });
 
   const displayChallenges = filteredChallenges.length > 0 ? filteredChallenges : [
     { id: '1', title: 'Dark Trap Anthem', description: 'Need heavy 808s and dark melodies. Think Travis meets Metro.', bounty: 2.5, composer_wallet: 'EV9J5vRBzuFWXqGSy3jHDZg1vWJRW4v', audio_cid: '', is_open: true, created_at: new Date().toISOString() },

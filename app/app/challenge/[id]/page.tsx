@@ -39,6 +39,10 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
       const { data, error } = await supabase.from('challenges').select('*').eq('id', resolvedParams.id).single();
       if (!error && data) setChallenge(data);
       setLoading(false);
+      if (data && !data.is_open) {
+        router.push(`/winner/${resolvedParams.id}`);
+        return;
+      }
     }
     load();
   }, []);

@@ -54,6 +54,10 @@ export default function ManageChallenge({ params }: { params: Promise<{ id: stri
       const { data: subs } = await supabase.from('submissions').select('*').eq('challenge_id', resolvedParams.id).order('created_at', { ascending: false });
       if (subs) setSubmissions(subs);
       setLoading(false);
+      if (ch && !ch.is_open) {
+        router.push(`/winner/${resolvedParams.id}`);
+        return;
+      }
     }
     load();
   }, []);
@@ -369,6 +373,45 @@ export default function ManageChallenge({ params }: { params: Promise<{ id: stri
             >
               {status === 'idle' || status === 'error' ? 'CROWN THE WINNER →' : status === 'signing' ? 'AWAITING PHANTOM...' : status === 'confirming' ? 'CONFIRMING...' : 'SAVING...'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {(status === 'signing' || status === 'confirming' || status === 'saving') && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9998,
+          background: 'rgba(8,8,8,0.85)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: '24px',
+        }}>
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            style={{
+              width: '120px',
+              height: '120px',
+              objectFit: 'cover',
+              borderRadius: '50%',
+              mixBlendMode: 'lighten',
+            }}
+          >
+            <source src="/gold-coin.mp4" type="video/mp4" />
+          </video>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '11px', letterSpacing: '4px', color: '#c8a96e', fontFamily: '"Courier New", monospace', marginBottom: '8px' }}>
+              {status === 'signing' && 'AWAITING PHANTOM...'}
+              {status === 'confirming' && 'CONFIRMING ON-CHAIN...'}
+              {status === 'saving' && 'SAVING TO VAULT...'}
+            </div>
+            <div style={{ fontSize: '10px', color: '#444', letterSpacing: '2px', fontFamily: '"Courier New", monospace' }}>
+              {status === 'signing' && 'APPROVE THE TRANSACTION IN PHANTOM'}
+              {status === 'confirming' && 'WAITING FOR SOLANA CONFIRMATION'}
+              {status === 'saving' && 'ALMOST DONE...'}
+            </div>
           </div>
         </div>
       )}
