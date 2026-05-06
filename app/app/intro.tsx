@@ -37,6 +37,7 @@ export function IntroGate({ onEnter }: { onEnter: () => void }) {
     let animId: number;
 
     function resize() {
+      if (!canvas) return;
       W = canvas.offsetWidth;
       H = canvas.offsetHeight;
       canvas.width = W;
