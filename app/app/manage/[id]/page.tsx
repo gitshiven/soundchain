@@ -399,7 +399,7 @@ export default function ManageChallenge({ params }: { params: Promise<{ id: stri
               mixBlendMode: 'lighten',
             }}
           >
-            <source src="/gold-coin.mp4" type="video/mp4" />
+            <source src="https://jrplwantzsaefdskhnlq.supabase.co/storage/v1/object/public/videos/gold-coin.mp4" type="video/mp4" />
           </video>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '11px', letterSpacing: '4px', color: '#c8a96e', fontFamily: '"Courier New", monospace', marginBottom: '8px' }}>

@@ -124,7 +124,7 @@ export default function Home() {
           <video ref={videoRef} autoPlay muted loop playsInline style={{
             position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', opacity: 0.55,
           }}>
-            <source src="/vinyl.mp4" type="video/mp4" />
+            <source src="https://jrplwantzsaefdskhnlq.supabase.co/storage/v1/object/public/videos/vinyl.mp4.mp4" type="video/mp4" />
           </video>
           <div style={{
             position: 'absolute', inset: 0,

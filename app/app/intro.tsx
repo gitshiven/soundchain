@@ -127,7 +127,7 @@ export function IntroGate({ onEnter }: { onEnter: () => void }) {
           objectFit: 'cover', opacity: 0.55,
         }}
       >
-        <source src="/intro.mp4" type="video/mp4" />
+        <source src="https://jrplwantzsaefdskhnlq.supabase.co/storage/v1/object/public/videos/intro.mp4" type="video/mp4" />
       </video>
 
       {/* QUOTE WATERFALL */}
