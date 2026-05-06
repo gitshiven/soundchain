@@ -43,10 +43,11 @@ export default function PostChallenge() {
     ];
 
     function resize() {
-      W = canvas.offsetWidth;
-      H = canvas.offsetHeight;
-      canvas.width = W;
-      canvas.height = H;
+      if (!canvas) return;
+      W = canvas!.offsetWidth;
+      H = canvas!.offsetHeight;
+      canvas!.width = W;  
+      canvas!.height = H;
     }
 
     function spawnCoin() {
