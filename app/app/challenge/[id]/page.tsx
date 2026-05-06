@@ -306,7 +306,7 @@ export default function SubmitVersion({ params }: { params: Promise<{ id: string
               </div>
             )}
 
-            {status === 'uploading' || status === 'saving' && (
+            {(status === 'uploading' || status === 'saving') && (
               <div style={{ border: '1px solid rgba(200,169,110,0.2)', padding: '14px 16px', fontSize: '13px', color: '#c8a96e', fontFamily: '"Courier New", monospace', letterSpacing: '1px' }}>
                 {status === 'uploading' && '▲ Uploading to IPFS...'}
                 {status === 'saving' && '💾 Saving submission...'}
