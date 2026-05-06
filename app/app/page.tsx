@@ -51,6 +51,7 @@ function GlitchIntro({ onComplete }: { onComplete: () => void }) {
       <video
         ref={videoRef}
         playsInline
+        muted
         style={{
           width: 'min(35vw, 35vh)',
           height: 'min(35vw, 35vh)',
@@ -58,7 +59,7 @@ function GlitchIntro({ onComplete }: { onComplete: () => void }) {
           mixBlendMode: 'lighten',
         }}
       >
-        <source src="/final_intro.mp4" type="video/mp4" />
+        <source src="https://jrplwantzsaefdskhnlq.supabase.co/storage/v1/object/public/videos/final_intro.mp4" type="video/mp4" />
       </video>
     </div>
   );
